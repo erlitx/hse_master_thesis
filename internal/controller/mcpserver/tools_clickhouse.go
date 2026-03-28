@@ -15,9 +15,11 @@ func (h *Handler) registerClickHouseTools() {
 	)
 	h.srv.AddTool(pingTool, func(args map[string]interface{}) (*mcp.CallToolResult, error) {
 		_ = args
-		if err := h.uc.ClickHousePing(context.Background()); err != nil {
+		err := h.uc.ClickHousePing(context.Background())
+		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
+		
 		return mcp.NewToolResultText("ok"), nil
 	})
 

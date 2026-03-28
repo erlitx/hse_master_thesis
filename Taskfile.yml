@@ -69,5 +69,5 @@ tasks:
   run:
     desc: "Запускает сервер"
     cmds:
+      - go mod tidy
       - go run cmd/app/main.go
-

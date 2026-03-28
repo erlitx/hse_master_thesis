@@ -24,6 +24,7 @@ func (h *Handler) HTTPHandler() http.Handler {
 		}
 		defer r.Body.Close()
 
+		// Parse the JSON-RPC request, execute it, and get the response
 		resp := h.srv.HandleMessage(r.Context(), body)
 		if resp == nil {
 			// JSON-RPC notifications have no response
