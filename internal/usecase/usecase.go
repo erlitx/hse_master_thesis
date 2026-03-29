@@ -32,8 +32,6 @@ type ClickHouse interface {
 	// LoadFromS3ToCH(ctx context.Context, load any) error
 }
 
-
-
 type UseCase struct {
 	storageminio Storage
 	repository   Repository
@@ -41,7 +39,6 @@ type UseCase struct {
 	clickhouse   ClickHouse
 	clock        Clock
 }
-
 
 func New(s Storage, r Repository, p Postgres, ch ClickHouse, clk Clock) *UseCase {
 	return &UseCase{

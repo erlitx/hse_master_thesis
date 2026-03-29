@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	clickhousepkg "github.com/erlitx/mcp_server/pkg/clickhouse"
 	"github.com/erlitx/mcp_server/pkg/httpserver"
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/rs/zerolog/log"
 )
 
 type App struct {
@@ -24,10 +25,7 @@ type MCP struct {
 	// HTTP server address and path.
 	Addr string `envconfig:"MCP_ADDR" default:":8081"`
 	Path string `envconfig:"MCP_PATH" default:"/mcp"`
-
 }
-
-
 
 type Config struct {
 	App        App
@@ -35,8 +33,6 @@ type Config struct {
 	HTTP       httpserver.Config
 	ClickHouse clickhousepkg.Config
 }
-
-
 
 func New() (Config, error) {
 	var config Config
@@ -48,16 +44,14 @@ func New() (Config, error) {
 	}
 	envFile := ".env." + env
 
-
 	// Only load .env file if not inside Docker
 	if os.Getenv("DOCKER") != "true" {
-		fmt.Println("Loading from:", envFile)
+		log.Info().Msg(fmt.Sprintf("Loading from: %s", envFile))
 		err := godotenv.Overload(envFile)
 		if err != nil {
 			return config, fmt.Errorf("godotenv.Load: %w", err)
 		}
 	}
-
 
 	// Load config from environment variables
 	err := envconfig.Process("", &config)
@@ -65,6 +59,5 @@ func New() (Config, error) {
 		return config, fmt.Errorf("envconfig.Process: %w", err)
 	}
 
-	fmt.Printf("Cofig: %+v", config)
 	return config, nil
 }

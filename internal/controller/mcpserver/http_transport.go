@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 // HTTPHandler returns an http.Handler that serves MCP JSON-RPC over HTTP.
@@ -22,7 +24,13 @@ func (h *Handler) HTTPHandler() http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		defer r.Body.Close()
+
+		defer func() {
+			if err := r.Body.Close(); err != nil {
+				// log it (don't panic in HTTP handler)
+				log.Printf("failed to close request body: %v", err)
+			}
+		}()
 
 		// Parse the JSON-RPC request, execute it, and get the response
 		resp := h.srv.HandleMessage(r.Context(), body)
@@ -39,6 +47,9 @@ func (h *Handler) HTTPHandler() http.Handler {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(b)
+		_, err = w.Write(b)
+		if err != nil {
+			log.Info().Err(err).Msg("failed to write response")
+		}
 	})
 }

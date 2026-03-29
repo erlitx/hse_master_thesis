@@ -6,9 +6,8 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 )
 
-
 type ClickHouse struct {
-	conn     clickhouse.Conn
+	conn clickhouse.Conn
 }
 
 func New(ch clickhouse.Conn) *ClickHouse {

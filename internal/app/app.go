@@ -11,14 +11,12 @@ import (
 	"github.com/erlitx/mcp_server/internal/adapter/clickhouse"
 	"github.com/erlitx/mcp_server/internal/adapter/clock"
 	"github.com/erlitx/mcp_server/internal/adapter/nop"
+	httpcontroller "github.com/erlitx/mcp_server/internal/controller/http"
 	"github.com/erlitx/mcp_server/internal/usecase"
 	clickhousepkg "github.com/erlitx/mcp_server/pkg/clickhouse"
-	httpcontroller "github.com/erlitx/mcp_server/internal/controller/http"
 	"github.com/erlitx/mcp_server/pkg/httpserver"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
-
-
 )
 
 type Dependencies struct {
@@ -63,7 +61,6 @@ func Run(ctx context.Context, cfg config.Config) error {
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(sig)
 
-
 	select {
 	case s := <-sig:
 		log.Info().Str("signal", s.String()).Msg("App got signal to stop")
@@ -75,11 +72,12 @@ func Run(ctx context.Context, cfg config.Config) error {
 		log.Info().Msg("App context canceled, stopping")
 	}
 
+	//nolint:contextcheck
 	httpSrv.Close()
 	if err := clickhouseUc.Close(); err != nil {
 		log.Error().Err(err).Msg("failed to close ClickHouse connection")
 	}
-	
+
 	log.Info().Msg("App stopped!")
 
 	return nil

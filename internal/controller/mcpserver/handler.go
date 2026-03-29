@@ -12,10 +12,13 @@ type Handler struct {
 	cfg config.Config
 	uc  *usecase.UseCase
 	srv *server.MCPServer
+	
 }
 
 func New(cfg config.Config, uc *usecase.UseCase) *Handler {
-	s := server.NewMCPServer(cfg.App.Name, cfg.App.Version,
+	s := server.NewMCPServer(
+		cfg.App.Name,
+		cfg.App.Version,
 		server.WithLogging(),
 		server.WithPromptCapabilities(false),
 		server.WithResourceCapabilities(false, false),
@@ -28,5 +31,20 @@ func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 
 	return h
 }
+
+func (h *Handler) registerTools() {
+	h.registerMathTools()
+	h.registerTimeTools()
+	h.registerClickHouseTools()
+}
+
+func (h *Handler) registerResources() {
+	h.registerTimeResources()
+}
+
+func (h *Handler) registerPrompts() {
+	h.registerGreetingPrompt()
+}
+
 
 func (h *Handler) Server() *server.MCPServer { return h.srv }
