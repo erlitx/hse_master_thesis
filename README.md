@@ -1,7 +1,6 @@
 # MCP Server (Go) - Clean Architecture Template
 
-This project mirrors a typical Go service layout (cmd → config → internal/{app,controller,usecase,adapter} → pkg),
-but exposes functionality via an **MCP server** using `github.com/mark3labs/mcp-go` **v0.7.0**.
+
 
 ## What it provides
 

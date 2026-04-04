@@ -10,6 +10,7 @@ import (
 	"github.com/erlitx/mcp_server/config"
 	"github.com/erlitx/mcp_server/internal/adapter/clickhouse"
 	"github.com/erlitx/mcp_server/internal/adapter/clock"
+	"github.com/erlitx/mcp_server/internal/adapter/dbt"
 	"github.com/erlitx/mcp_server/internal/adapter/nop"
 	httpcontroller "github.com/erlitx/mcp_server/internal/controller/http"
 	"github.com/erlitx/mcp_server/internal/usecase"
@@ -38,6 +39,9 @@ func Run(ctx context.Context, cfg config.Config) error {
 
 	clickhouseUc := clickhouse.New(chPool.Conn())
 
+	// DBT
+	dbtAdapter := dbt.New("/home/db_admin/Projects/Centaur/DWH/Source/dwh_dbt/centaur_dwh/target/manifest.json")
+
 	// --- Usecase layer ---
 	uc := usecase.New(
 		nop.Storage{},
@@ -45,6 +49,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 		nop.Postgres{},
 		clickhouseUc,
 		deps.Clock,
+		dbtAdapter,
 	)
 
 	router := chi.NewRouter()

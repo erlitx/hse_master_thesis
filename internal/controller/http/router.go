@@ -26,7 +26,11 @@ func ProfileRouter(cfg config.Config, r *chi.Mux, uc *usecase.UseCase) error {
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			// Process MCP JSON-RPC request to find registered tools/resources/prompts and execute them
+			r.Handle("/", mcpHandler.HTTPHandler())
 			r.Handle("/mcp", mcpHandler.HTTPHandler())
+
+			// DBT manifest endpoint
+			r.Get("/dbt/manifest", v1Handler.GetManifest)
 		})
 	})
 
