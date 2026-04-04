@@ -3,6 +3,7 @@ package logger
 import (
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -12,33 +13,47 @@ import (
 type Config struct {
 	AppName       string `envconfig:"APP_NAME" required:"true"`
 	AppVersion    string `envconfig:"APP_VERSION" required:"true"`
-	Level         string `envconfig:"LOGGER_LEVEL" default:"error"`
-	PrettyConsole bool   `envconfig:"LOGGER_PRETTY_CONSOLE" default:"false"`
+	Level         string `envconfig:"LOGGER_LEVEL" default:"debug"`
+	PrettyConsole bool   `envconfig:"LOGGER_PRETTY_CONSOLE" default:"true"`
 	Env           string `envconfig:"APP_ENV" default:"prod"`
 }
 
 func Init(c Config) {
-	zerolog.TimeFieldFormat = time.RFC3339
-
-	level, err := zerolog.ParseLevel(c.Level)
+	// --- parse level ---
+	level, err := zerolog.ParseLevel(strings.ToLower(c.Level))
 	if err != nil {
 		level = zerolog.InfoLevel
 	}
-	zerolog.SetGlobalLevel(level)
 
-	var output io.Writer = os.Stderr
+	// --- time format ---
+	zerolog.TimeFieldFormat = time.RFC3339
+
+	// --- output ---
+	var out io.Writer = os.Stdout
 	if c.PrettyConsole {
-		output = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "15:04:05"}
+		out = zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: "15:04:05",
+		}
 	}
 
-	log.Logger = zerolog.New(output).
+	// --- build logger ---
+	logger := zerolog.New(out).
 		Level(level).
 		With().
 		Timestamp().
+		Str("app", c.AppName).
+		Str("version", c.AppVersion).
+		Str("env", c.Env).
 		Caller().
-		// Str("app_name", c.AppName).
-		// Str("app_version", c.AppVersion).
 		Logger()
 
-	log.Info().Msg("Logger initialized")
+	// set global
+	log.Logger = logger
+	zerolog.SetGlobalLevel(level)
+
+	// --- force visibility ---
+	log.Info().
+		Str("level", level.String()).
+		Msg("logger initialized")
 }

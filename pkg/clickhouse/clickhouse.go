@@ -23,7 +23,7 @@ type Pool struct {
 
 func New(ctx context.Context, c Config) (*Pool, error) {
 	addr := fmt.Sprintf("%s:%s", c.Host, c.Port)
-	log.Info().Msgf("Connecting to ClickHouse at %s", addr)
+	log.Debug().Msgf("Connecting to ClickHouse at %s", addr)
 	opts := &clickhouse.Options{
 		Addr: []string{addr},
 		Auth: clickhouse.Auth{

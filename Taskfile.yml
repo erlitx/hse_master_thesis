@@ -71,3 +71,41 @@ tasks:
     cmds:
       - go mod tidy
       - go run cmd/app/main.go
+
+
+  claude-test:
+    desc: "Тестирует интеграцию с Claude API"
+    dotenv: [".env.dev"]
+    cmds:
+      - |
+        curl -sS https://api.anthropic.com/v1/messages \
+          -H "Content-Type: application/json" \
+          -H "x-api-key: $CLAUDE_API_KEY" \
+          -H "anthropic-version: 2023-06-01" \
+          -d '{
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 300,
+            "tools": [
+              {
+                "name": "query_db",
+                "description": "Execute a read-only ClickHouse query (SELECT/SHOW/DESCRIBE/EXPLAIN)",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                  "query": {
+                    "description": "SQL query to execute",
+                    "type": "string"
+                    }
+                  },
+                  "required": ["query"]
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "How many users are in the database? Use the tool."
+              }
+            ]
+          }' \
+        | jq 
