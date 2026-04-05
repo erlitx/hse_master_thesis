@@ -12,7 +12,6 @@ type Handler struct {
 	cfg config.Config
 	uc  *usecase.UseCase
 	srv *server.MCPServer
-	
 }
 
 func New(cfg config.Config, uc *usecase.UseCase) *Handler {
@@ -40,11 +39,11 @@ func (h *Handler) registerTools() {
 
 func (h *Handler) registerResources() {
 	h.registerTimeResources()
+	h.registerManifestResources()
 }
 
 func (h *Handler) registerPrompts() {
 	h.registerGreetingPrompt()
 }
-
 
 func (h *Handler) Server() *server.MCPServer { return h.srv }

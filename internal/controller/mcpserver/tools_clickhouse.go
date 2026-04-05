@@ -10,9 +10,8 @@ func (h *Handler) registerClickHouseTools() {
 		"ch_ping",
 		mcp.WithDescription("Ping ClickHouse using the configured adapter."),
 	)
-	
-	h.srv.AddTool(pingTool, h.clickHousePing)
 
+	h.srv.AddTool(pingTool, h.clickHousePing)
 
 	// ch_query(query:string) -> json rows (limited)
 	queryTool := mcp.NewTool(
@@ -22,5 +21,4 @@ func (h *Handler) registerClickHouseTools() {
 	)
 
 	h.srv.AddTool(queryTool, h.clickHouseQuery)
-
 }

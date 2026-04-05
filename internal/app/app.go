@@ -41,6 +41,14 @@ func Run(ctx context.Context, cfg config.Config) error {
 
 	// DBT
 	dbtAdapter := dbt.New("/home/db_admin/Projects/Centaur/DWH/Source/dwh_dbt/centaur_dwh/target/manifest.json")
+	dbtCache := dbt.NewManifestCache(dbtAdapter)
+
+	// Warmup cache on startup
+	log.Info().Msg("Warming up DBT manifest cache...")
+	if err := dbtCache.Warmup(ctx); err != nil {
+		log.Fatal().Err(err).Msg("failed to warmup DBT manifest cache")
+	}
+	log.Info().Msg("DBT manifest cache warmed up successfully")
 
 	// --- Usecase layer ---
 	uc := usecase.New(
@@ -50,6 +58,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 		clickhouseUc,
 		deps.Clock,
 		dbtAdapter,
+		dbtCache,
 	)
 
 	router := chi.NewRouter()

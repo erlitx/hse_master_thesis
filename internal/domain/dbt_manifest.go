@@ -7,12 +7,12 @@ type DBTManifest struct {
 
 // DBTModel represents a single DBT model with its metadata
 type DBTModel struct {
-	Name         string            `json:"name"`
-	RelationName string            `json:"relation_name"`
-	Description  string            `json:"description"`
-	Meta         map[string]any    `json:"meta"`
-	Columns      []DBTModelColumn  `json:"columns"`
-	Refs         []DBTModelRef     `json:"refs"`
+	Name         string           `json:"name"`
+	RelationName string           `json:"relation_name"`
+	Description  string           `json:"description"`
+	Meta         map[string]any   `json:"meta"`
+	Columns      []DBTModelColumn `json:"columns"`
+	Refs         []DBTModelRef    `json:"refs"`
 }
 
 // DBTModelColumn represents a column in a DBT model

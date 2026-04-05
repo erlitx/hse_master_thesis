@@ -7,52 +7,13 @@ import (
 	"os"
 
 	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/dto"
 )
 
-// ManifestParser handles parsing of DBT manifest.json files
-type ManifestParser struct {
-	manifestPath string
-}
-
-// New creates a new ManifestParser with the specified manifest file path
-func New(manifestPath string) *ManifestParser {
-	return &ManifestParser{
-		manifestPath: manifestPath,
-	}
-}
-
-// manifestJSON represents the structure of the manifest.json file
-type manifestJSON struct {
-	Nodes map[string]nodeJSON `json:"nodes"`
-}
-
-// nodeJSON represents a node in the manifest
-type nodeJSON struct {
-	Name         string                 `json:"name"`
-	RelationName string                 `json:"relation_name"`
-	ResourceType string                 `json:"resource_type"`
-	Description  string                 `json:"description"`
-	Meta         map[string]any         `json:"meta"`
-	Columns      map[string]columnJSON  `json:"columns"`
-	Refs         []refJSON              `json:"refs"`
-}
-
-// columnJSON represents a column definition
-type columnJSON struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	DataType    string `json:"data_type"`
-}
-
-// refJSON represents a model reference
-type refJSON struct {
-	Name    string  `json:"name"`
-	Package *string `json:"package"`
-	Version *string `json:"version"`
-}
-
 // ParseManifest reads and parses the manifest.json file
-func (mp *ManifestParser) ParseManifest(ctx context.Context) (*domain.DBTManifest, error) {
+func (mp *DbtParser) ParseManifest(ctx context.Context) (*domain.DBTManifest, error) {
+
+	// TODO: start dbt parser in background and return cached manifest until it's ready, then switch to new one
 	// Read the manifest file
 	data, err := os.ReadFile(mp.manifestPath)
 	if err != nil {
@@ -60,7 +21,7 @@ func (mp *ManifestParser) ParseManifest(ctx context.Context) (*domain.DBTManifes
 	}
 
 	// Parse JSON
-	var manifest manifestJSON
+	var manifest dto.ManifestJSON
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal manifest JSON: %w", err)
 	}
@@ -75,11 +36,11 @@ func (mp *ManifestParser) ParseManifest(ctx context.Context) (*domain.DBTManifes
 		if node.ResourceType != "model" {
 			continue
 		}
-		
+
 		if node.Meta == nil {
 			continue
 		}
-		
+
 		level, ok := node.Meta["level"].(string)
 		if !ok || level != "bi_data_mart" {
 			continue
