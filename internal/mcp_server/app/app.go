@@ -40,7 +40,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 	clickhouseUc := clickhouse.New(chPool.Conn())
 
 	// DBT
-	dbtAdapter := dbt.New("/home/db_admin/Projects/Centaur/DWH/Source/dwh_dbt/centaur_dwh/target/manifest.json")
+	dbtAdapter := dbt.New("./manifest.json")
 	dbtCache := dbt.NewManifestCache(dbtAdapter)
 
 	// Warmup cache on startup
