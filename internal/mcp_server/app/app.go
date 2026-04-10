@@ -8,12 +8,12 @@ import (
 	"syscall"
 
 	"github.com/erlitx/mcp_server/config"
-	"github.com/erlitx/mcp_server/internal/adapter/clickhouse"
-	"github.com/erlitx/mcp_server/internal/adapter/clock"
-	"github.com/erlitx/mcp_server/internal/adapter/dbt"
-	"github.com/erlitx/mcp_server/internal/adapter/nop"
-	httpcontroller "github.com/erlitx/mcp_server/internal/controller/http"
-	"github.com/erlitx/mcp_server/internal/usecase"
+	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/clickhouse"
+	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/clock"
+	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/dbt"
+	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/nop"
+	httpcontroller "github.com/erlitx/mcp_server/internal/mcp_server/controller/http"
+	"github.com/erlitx/mcp_server/internal/mcp_server/usecase"
 	clickhousepkg "github.com/erlitx/mcp_server/pkg/clickhouse"
 	"github.com/erlitx/mcp_server/pkg/httpserver"
 	"github.com/go-chi/chi/v5"
@@ -67,7 +67,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 		return fmt.Errorf("failed http router profile: %w", err)
 	}
 
-	httpSrv := httpserver.New(router, cfg.HTTP.Port)
+	httpSrv := httpserver.New(router, cfg.HTTP.ServerPort)
 
 	log.Info().Msg("App started!")
 

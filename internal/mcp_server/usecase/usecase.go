@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
 // Storage is a placeholder interface to mirror your architecture.

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 	"github.com/erlitx/mcp_server/internal/dto"
 )
 

@@ -2,9 +2,9 @@ package http
 
 import (
 	"github.com/erlitx/mcp_server/config"
-	v1 "github.com/erlitx/mcp_server/internal/controller/http/v1"
-	"github.com/erlitx/mcp_server/internal/controller/mcpserver"
-	"github.com/erlitx/mcp_server/internal/usecase"
+	v1 "github.com/erlitx/mcp_server/internal/mcp_server/controller/http/v1"
+	"github.com/erlitx/mcp_server/internal/mcp_server/controller/mcpserver"
+	"github.com/erlitx/mcp_server/internal/mcp_server/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

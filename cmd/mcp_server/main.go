@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/erlitx/mcp_server/config"
-	"github.com/erlitx/mcp_server/internal/app"
+	"github.com/erlitx/mcp_server/internal/mcp_server/app"
 	"github.com/erlitx/mcp_server/pkg/logger"
 	"github.com/rs/zerolog/log"
 )
@@ -26,7 +26,7 @@ func main() {
 		log.Fatal().Err(err).Msg("config.New")
 	}
 
-	log.Info().Msgf("Starting %s environment", cfg.App.Env)
+	log.Info().Msgf("Starting %s environment", cfg.MCPServer.Env)
 
 	if err := app.Run(ctx, cfg); err != nil {
 		log.Fatal().Err(err).Msg("app.Run")

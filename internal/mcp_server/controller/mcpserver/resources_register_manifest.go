@@ -7,7 +7,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/rs/zerolog/log"
-	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
 

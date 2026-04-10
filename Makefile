@@ -12,8 +12,6 @@ ifneq (,$(wildcard $(ENV_FILE)))
 endif
 
 
-
-
 up-dev:
 	docker compose --env-file .env.dev up -d --force-recreate
 
@@ -24,8 +22,19 @@ up:
 down:
 	docker compose down
 
-run: mod
-	APP_ENV=dev go run ./cmd/app/main.go
+run-mcp-server: mod
+	APP_ENV=dev go run ./cmd/mcp_server/main.go
+
+run-mcp-client: mod
+	APP_ENV=dev go run ./cmd/mcp_client/main.go
+
+build-mcp-server: mod
+	go build -o bin/mcp_server ./cmd/mcp_server/main.go
+
+build-mcp-client: mod
+	go build -o bin/mcp_client ./cmd/mcp_client/main.go
+
+build-all: build-mcp-server build-mcp-client
 
 run-staging: mod
 	APP_ENV=staging go run ./cmd/etl_server/main.go

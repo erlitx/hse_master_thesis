@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 	"github.com/rs/zerolog/log"
 )
 

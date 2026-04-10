@@ -2,7 +2,7 @@ package mcpserver
 
 import (
 	"github.com/erlitx/mcp_server/config"
-	"github.com/erlitx/mcp_server/internal/usecase"
+	"github.com/erlitx/mcp_server/internal/mcp_server/usecase"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -16,13 +16,13 @@ type Handler struct {
 
 func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 	s := server.NewMCPServer(
-		cfg.App.Name,
-		cfg.App.Version,
+		cfg.MCPServer.Name,
+		cfg.MCPServer.Version,
 		server.WithLogging(),
 		server.WithPromptCapabilities(false),
 		server.WithResourceCapabilities(false, false),
 	)
-
+	
 	h := &Handler{cfg: cfg, uc: uc, srv: s}
 	h.registerTools()
 	h.registerResources()

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/erlitx/mcp_server/internal/domain"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
 // ManifestCache returns the manifest cache instance.
