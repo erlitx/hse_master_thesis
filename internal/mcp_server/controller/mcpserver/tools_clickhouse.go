@@ -1,6 +1,8 @@
 package mcpserver
 
 import (
+	"context"
+
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -11,7 +13,9 @@ func (h *Handler) registerClickHouseTools() {
 		mcp.WithDescription("Ping ClickHouse using the configured adapter."),
 	)
 
-	h.srv.AddTool(pingTool, h.clickHousePing)
+	h.srv.AddTool(pingTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return h.clickHousePing(ctx, req)
+	})
 
 	// ch_query(query:string) -> json rows (limited)
 	queryTool := mcp.NewTool(
@@ -20,5 +24,7 @@ func (h *Handler) registerClickHouseTools() {
 		mcp.WithString("query", mcp.Description("SQL query to execute"), mcp.Required()),
 	)
 
-	h.srv.AddTool(queryTool, h.clickHouseQuery)
+	h.srv.AddTool(queryTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return h.clickHouseQuery(ctx, req)
+	})
 }

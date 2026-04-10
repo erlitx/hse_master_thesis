@@ -102,8 +102,8 @@ func (h *Handler) registerModelResources(manifest *domain.DBTManifest) {
 // NOTE:
 // - This is actual DATA (not metadata like resources/list)
 // - Useful for clients / LLMs to consume structured list
-func (h *Handler) makeBulkModelsHandler(manifest *domain.DBTManifest) func(req mcp.ReadResourceRequest) ([]interface{}, error) {
-	return func(req mcp.ReadResourceRequest) ([]interface{}, error) {
+func (h *Handler) makeBulkModelsHandler(manifest *domain.DBTManifest) func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	return func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 
 		// Extract only model names (lightweight response)
 		modelNames := extractModelNames(manifest.Models)
@@ -129,8 +129,8 @@ func (h *Handler) makeBulkModelsHandler(manifest *domain.DBTManifest) func(req m
 // - This is the main "data endpoint" for each DBT model
 // - Uses TextResourceContents → JSON is embedded as string (MCP spec)
 // - Client must parse JSON from "text" field
-func (h *Handler) makeModelHandler(uri string, model domain.DBTModel) func(req mcp.ReadResourceRequest) ([]interface{}, error) {
-	return func(req mcp.ReadResourceRequest) ([]interface{}, error) {
+func (h *Handler) makeModelHandler(uri string, model domain.DBTModel) func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	return func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 
 		log.Debug().
 			Str("model", model.Name).
@@ -152,21 +152,19 @@ func (h *Handler) makeModelHandler(uri string, model domain.DBTModel) func(req m
 // Client must:
 //   1. read "text"
 //   2. parse JSON again
-func buildJSONResource(uri string, payload interface{}) ([]interface{}, error) {
+func buildJSONResource(uri string, payload interface{}) ([]mcp.ResourceContents, error) {
 	jsonData, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("marshal failed: %w", err)
 	}
 
 	content := mcp.TextResourceContents{
-		ResourceContents: mcp.ResourceContents{
-			URI:      uri,
-			MIMEType: "application/json",
-		},
-		Text: string(jsonData),
+		URI:      uri,
+		MIMEType: "application/json",
+		Text:     string(jsonData),
 	}
 
-	return []interface{}{content}, nil
+	return []mcp.ResourceContents{&content}, nil
 }
 
 

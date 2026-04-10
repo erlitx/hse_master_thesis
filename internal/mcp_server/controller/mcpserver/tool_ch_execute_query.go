@@ -7,12 +7,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func (h *Handler) clickHouseQuery(args map[string]interface{}) (*mcp.CallToolResult, error) {
-	q, ok := args["query"].(string)
-	if !ok {
+func (h *Handler) clickHouseQuery(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	q, err := req.RequireString("query")
+	if err != nil {
 		return mcp.NewToolResultError("missing/invalid argument: query (string)"), nil
 	}
-	rows, err := h.uc.ClickHouseQueryReadOnly(context.Background(), q)
+	rows, err := h.uc.ClickHouseQueryReadOnly(ctx, q)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}

@@ -8,10 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (h *Handler) DWHResources(req mcp.ReadResourceRequest) ([]interface{}, error) {
+func (h *Handler) DWHResources(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	_ = req
-
-	ctx := context.Background()
 
 	//manifest, err := h.uc.GetDBTManifest(ctx)
 	manifest, err := h.uc.GetManifestCache(ctx)
@@ -26,12 +24,10 @@ func (h *Handler) DWHResources(req mcp.ReadResourceRequest) ([]interface{}, erro
 	}
 
 	content := mcp.TextResourceContents{
-		ResourceContents: mcp.ResourceContents{
-			URI:      "dwh://models",
-			MIMEType: "application/json",
-		},
-		Text: string(b),
+		URI:      "dwh://models",
+		MIMEType: "application/json",
+		Text:     string(b),
 	}
 
-	return []interface{}{content}, nil
+	return []mcp.ResourceContents{&content}, nil
 }

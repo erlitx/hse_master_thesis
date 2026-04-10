@@ -1,6 +1,10 @@
 package mcpserver
 
-import "github.com/mark3labs/mcp-go/mcp"
+import (
+	"context"
+
+	"github.com/mark3labs/mcp-go/mcp"
+)
 
 func (h *Handler) registerTimeTools() {
 	// now() -> ISO timestamp (UTC)
@@ -8,8 +12,7 @@ func (h *Handler) registerTimeTools() {
 		"now",
 		mcp.WithDescription("Get current time as RFC3339Nano in UTC."),
 	)
-	h.srv.AddTool(nowTool, func(args map[string]interface{}) (*mcp.CallToolResult, error) {
-		_ = args
+	h.srv.AddTool(nowTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		return mcp.NewToolResultText(h.uc.NowISO()), nil
 	})
 }

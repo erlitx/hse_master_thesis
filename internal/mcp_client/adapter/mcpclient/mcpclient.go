@@ -59,46 +59,43 @@ func (c *Client) ListResources(ctx context.Context) ([]dto.MCPResource, error) {
 func (c *Client) ReadResource(ctx context.Context, uri string) (*dto.MCPResource, error) {
 	log.Debug().Str("uri", uri).Msg("reading resource from MCP server")
 
-	// Call resources/read using MCP types
+	// Call resources/read using custom unmarshaling
 	params := struct {
 		URI string `json:"uri"`
 	}{
 		URI: uri,
 	}
 
-	var readResult mcp.ReadResourceResult
-	if err := c.call(ctx, "resources/read", params, &readResult); err != nil {
+	// Use a custom result structure to handle the contents manually
+	var rawResult struct {
+		Contents []map[string]any `json:"contents"`
+	}
+	if err := c.call(ctx, "resources/read", params, &rawResult); err != nil {
 		return nil, fmt.Errorf("failed to read resource %s: %w", uri, err)
 	}
 
-	if len(readResult.Contents) == 0 {
+	if len(rawResult.Contents) == 0 {
 		return nil, fmt.Errorf("no content returned for resource %s", uri)
 	}
 
-	// Extract content from the first result
-	firstContent := readResult.Contents[0]
+	// Parse the first content using mcp.ParseResourceContents
+	firstContent, err := mcp.ParseResourceContents(rawResult.Contents[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse resource contents: %w", err)
+	}
 
 	// Extract text content based on the type
 	var contentText string
 	var mimeType string
 
-	switch content := firstContent.(type) {
-	case mcp.TextResourceContents:
-		contentText = content.Text
-		mimeType = content.MIMEType
-	case map[string]interface{}:
-		// Handle map response
-		if text, ok := content["text"].(string); ok {
-			contentText = text
-		}
-		if mime, ok := content["mimeType"].(string); ok {
-			mimeType = mime
-		}
-		if uri, ok := content["uri"].(string); ok {
-			_ = uri // uri is available if needed
-		}
-	default:
-		return nil, fmt.Errorf("unexpected content type for resource %s", uri)
+	// Try to use AsTextResourceContents helper
+	if textContent, ok := mcp.AsTextResourceContents(firstContent); ok {
+		contentText = textContent.Text
+		mimeType = textContent.MIMEType
+	} else {
+		// Debug: log the actual type
+		log.Warn().Msgf("unexpected content type: %T", firstContent)
+		return nil, fmt.Errorf("unexpected content type for resource %s (got %T)", uri, firstContent)
 	}
 
 	resource := &dto.MCPResource{

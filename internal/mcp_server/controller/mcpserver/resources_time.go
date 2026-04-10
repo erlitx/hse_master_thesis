@@ -1,6 +1,10 @@
 package mcpserver
 
-import "github.com/mark3labs/mcp-go/mcp"
+import (
+	"context"
+
+	"github.com/mark3labs/mcp-go/mcp"
+)
 
 func (h *Handler) registerTimeResources() {
 	// A simple fixed resource:
@@ -11,12 +15,13 @@ func (h *Handler) registerTimeResources() {
 		mcp.WithResourceDescription("Returns the current server time in RFC3339Nano (UTC)."),
 		mcp.WithMIMEType("text/plain"),
 	)
-	h.srv.AddResource(res, func(req mcp.ReadResourceRequest) ([]interface{}, error) {
+	h.srv.AddResource(res, func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 		_ = req
 		content := mcp.TextResourceContents{
-			ResourceContents: mcp.ResourceContents{URI: "time://now", MIMEType: "text/plain"},
-			Text:             h.uc.NowISO(),
+			URI:      "time://now",
+			MIMEType: "text/plain",
+			Text:     h.uc.NowISO(),
 		}
-		return []interface{}{content}, nil
+		return []mcp.ResourceContents{&content}, nil
 	})
 }
