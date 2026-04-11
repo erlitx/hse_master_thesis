@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"github.com/erlitx/mcp_server/config"
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 	"github.com/erlitx/mcp_server/internal/mcp_server/usecase"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -12,6 +13,7 @@ type Handler struct {
 	cfg config.Config
 	uc  *usecase.UseCase
 	srv *server.MCPServer
+	modelByName map[string]domain.DBTModel
 }
 
 func New(cfg config.Config, uc *usecase.UseCase) *Handler {
@@ -19,8 +21,8 @@ func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 		cfg.MCPServer.Name,
 		cfg.MCPServer.Version,
 		server.WithLogging(),
-		server.WithPromptCapabilities(false),
-		server.WithResourceCapabilities(false, false),
+		server.WithPromptCapabilities(true),
+		server.WithResourceCapabilities(true, true),
 	)
 	
 	h := &Handler{cfg: cfg, uc: uc, srv: s}
@@ -32,9 +34,8 @@ func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 }
 
 func (h *Handler) registerTools() {
-	h.registerMathTools()
-	h.registerTimeTools()
 	h.registerClickHouseTools()
+	h.registerManifestTools()
 }
 
 func (h *Handler) registerResources() {
