@@ -25,8 +25,8 @@ type ClaudeToolInfo struct {
 
 // ClaudeMessage represents a single message in the conversation
 type ClaudeMessage struct {
-	Role    string `json:"role"` // "user" or "assistant"
-	Content string `json:"content"`
+	Role    string      `json:"role"` // "user" or "assistant"
+	Content interface{} `json:"content"` // string for user messages, []ClaudeContent for assistant messages
 }
 
 // ClaudeResponse represents a response from the Claude API
@@ -42,8 +42,15 @@ type ClaudeResponse struct {
 }
 // ClaudeContent represents content blocks in Claude's response
 type ClaudeContent struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
+	Type       string                 `json:"type"` // "text", "mcp_tool_use", "mcp_tool_result"
+	Text       string                 `json:"text,omitempty"`
+	ID         string                 `json:"id,omitempty"`          // for tool_use
+	Name       string                 `json:"name,omitempty"`        // for tool_use
+	Input      map[string]interface{} `json:"input,omitempty"`       // for tool_use
+	ServerName string                 `json:"server_name,omitempty"` // for tool_use
+	ToolUseID  string                 `json:"tool_use_id,omitempty"` // for tool_result
+	IsError    *bool                  `json:"is_error,omitempty"`    // for tool_result
+	Content    []ClaudeContent        `json:"content,omitempty"`     // for tool_result (nested content)
 }
 
 // ClaudeUsage contains token usage information from Claude

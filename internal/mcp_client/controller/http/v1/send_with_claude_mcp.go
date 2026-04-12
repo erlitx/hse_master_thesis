@@ -2,11 +2,15 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
+	"github.com/erlitx/mcp_server/pkg/render"
 	"github.com/rs/zerolog/log"
 )
+
+const MCP_SERVER_NAME = "analytics"
 
 // SendWithClaudeMCP handles POST /api/v1/claude
 // Manages conversation with Claude, supporting both new and existing sessions
@@ -16,14 +20,13 @@ func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	var req dto.ConversationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Error().Err(err).Msg("failed to decode request body")
-		respondWithError(w, http.StatusBadRequest, "invalid request body")
+		render.Error(w, err, http.StatusBadRequest, "failed to decode request body")
 		return
 	}
 
 	// Validate request
 	if req.Message == "" {
-		respondWithError(w, http.StatusBadRequest, "message is required")
+		render.Error(w, fmt.Errorf("message field is empty"), http.StatusBadRequest, "message is required")
 		return
 	}
 
@@ -57,11 +60,10 @@ func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 		maxTokens,
 		systemPrompt,
 		h.config.MCPServerConnection.Addr,
-		"analytics", // MCP server name
+		MCP_SERVER_NAME, 
 	)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to handle conversation")
-		respondWithError(w, http.StatusInternalServerError, "failed to process conversation: "+err.Error())
+		render.ErrorSpecific(w, err, mcpClientErrorMappings)
 		return
 	}
 
@@ -69,7 +71,7 @@ func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 	response := dto.FromSession(session)
 
 	// Return successful response
-	respondWithJSON(w, http.StatusOK, response)
+	render.JSON(w, response, http.StatusOK)
 }
 
 // Helper function to convert string pointer to string
