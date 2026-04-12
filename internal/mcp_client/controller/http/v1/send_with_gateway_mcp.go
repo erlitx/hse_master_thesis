@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/erlitx/mcp_server/internal/dto"
+	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
 	"github.com/rs/zerolog/log"
 )
 
 // SendMessage handles POST /api/v1/send_message
 // Accepts a user message, fetches MCP resources, and sends to Claude
-func (h *Handlers) SendMessage(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) SendWithGatewayMCP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Parse request body

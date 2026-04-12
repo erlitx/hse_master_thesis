@@ -2,10 +2,25 @@ package dto
 
 // ClaudeRequest represents a request to the Claude API
 type ClaudeRequest struct {
-	Model     string          `json:"model"`
-	MaxTokens int             `json:"max_tokens"`
-	Messages  []ClaudeMessage `json:"messages"`
-	System    string          `json:"system,omitempty"`
+	Model      string           `json:"model"`
+	MaxTokens  int              `json:"max_tokens"`
+	Messages   []ClaudeMessage  `json:"messages"`
+	System     string           `json:"system,omitempty"`
+	MCPServers []MCPServerInfo  `json:"mcp_servers,omitempty"`
+	Tools      []ClaudeToolInfo `json:"tools,omitempty"`
+}
+
+// MCPServerInfo represents MCP server configuration in Claude request
+type MCPServerInfo struct {
+	Type string `json:"type"` // e.g., "url"
+	URL  string `json:"url"`
+	Name string `json:"name"`
+}
+
+// ClaudeToolInfo represents tool configuration in Claude request
+type ClaudeToolInfo struct {
+	Type          string `json:"type"` // e.g., "mcp_toolset"
+	MCPServerName string `json:"mcp_server_name"`
 }
 
 // ClaudeMessage represents a single message in the conversation

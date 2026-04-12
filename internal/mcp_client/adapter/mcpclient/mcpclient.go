@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/erlitx/mcp_server/internal/dto"
+	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/rs/zerolog/log"
 )
