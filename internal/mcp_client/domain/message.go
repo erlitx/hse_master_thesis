@@ -27,13 +27,14 @@ type Message struct {
 }
 
 type Content struct {
-	Type string 
-	Text string
-	ID   string
+	Type      string
+	Text      string
+	ID        string
 	ToolUseID string
-	Name string
-	Input map[string]interface{}
+	Name      string
+	Input     map[string]interface{}
+	IsError   *bool
 	ServerName string
-	Content []Content
+	Content    []Content
 }
 

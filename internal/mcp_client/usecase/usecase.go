@@ -13,12 +13,18 @@ type MCPClient interface {
 	ListResources(ctx context.Context) ([]dto.MCPResource, error)
 	// ReadResource fetches the content of a specific resource
 	ReadResource(ctx context.Context, uri string) (*dto.MCPResource, error)
+	// ListTools returns all available tools from the MCP server
+	ListTools(ctx context.Context) ([]dto.MCPToolInfo, error)
+	// CallTool executes a specific MCP tool with arguments
+	CallTool(ctx context.Context, name string, arguments map[string]interface{}) (map[string]interface{}, error)
 }
 
 // ClaudeClient provides access to Claude API
 type ClaudeClient interface {
 	// SendMessage sends a message to Claude with context from MCP resources
 	SendMessage(ctx context.Context, req dto.ClaudeRequest) (*dto.ClaudeResponse, error)
+	// SendGatewayMessage sends a request to Claude with Claude-native tools format
+	SendGatewayMessage(ctx context.Context, req dto.ManualGatewayRequest) (*dto.ClaudeResponse, error)
 }
 
 // SessionRepository defines the interface for session persistence

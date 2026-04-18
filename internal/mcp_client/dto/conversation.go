@@ -107,13 +107,21 @@ func ToDomainContent(dtoContent []ClaudeContent) []domain.Content {
 
 	result := make([]domain.Content, 0, len(dtoContent))
 	for _, c := range dtoContent {
+		input := c.Input
+		// Claude may omit empty object in responses, but when replaying tool_use
+		// we must preserve it as {} for the next request.
+		if c.Type == "tool_use" && input == nil {
+			input = map[string]interface{}{}
+		}
+
 		domainContent := domain.Content{
 			Type:       c.Type,
 			Text:       c.Text,
 			ID:         c.ID,
 			ToolUseID:  c.ToolUseID,
 			Name:       c.Name,
-			Input:      c.Input,
+			Input:      input,
+			IsError:    c.IsError,
 			ServerName: c.ServerName,
 		}
 
@@ -138,31 +146,45 @@ func fromDomainContent(domainContent []domain.Content) interface{} {
 		return domainContent[0].Text
 	}
 
-	// Otherwise, return as array of ClaudeContent
-	result := make([]ClaudeContent, 0, len(domainContent))
+	return fromDomainContentBlocks(domainContent)
+}
+
+func fromDomainContentBlocks(domainContent []domain.Content) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(domainContent))
 	for _, c := range domainContent {
-		claudeContent := ClaudeContent{
-			Type:       c.Type,
-			Text:       c.Text,
-			ID:         c.ID,
-			ToolUseID:  c.ToolUseID,
-			Name:       c.Name,
-			Input:      c.Input,
-			ServerName: c.ServerName,
+		entry := map[string]interface{}{
+			"type": c.Type,
 		}
 
-		// Recursively convert nested content
-		if len(c.Content) > 0 {
-			claudeContent.Content = make([]ClaudeContent, 0, len(c.Content))
-			for _, nested := range c.Content {
-				claudeContent.Content = append(claudeContent.Content, ClaudeContent{
-					Type: nested.Type,
-					Text: nested.Text,
-				})
+		switch c.Type {
+		case "text":
+			entry["text"] = c.Text
+		case "tool_use":
+			entry["id"] = c.ID
+			entry["name"] = c.Name
+			if c.Input == nil {
+				entry["input"] = map[string]interface{}{}
+			} else {
+				entry["input"] = c.Input
+			}
+			if c.ServerName != "" {
+				entry["server_name"] = c.ServerName
+			}
+		case "tool_result":
+			entry["tool_use_id"] = c.ToolUseID
+			if c.IsError != nil {
+				entry["is_error"] = *c.IsError
+			}
+			if len(c.Content) > 0 {
+				entry["content"] = fromDomainContentBlocks(c.Content)
+			}
+		default:
+			if c.Text != "" {
+				entry["text"] = c.Text
 			}
 		}
 
-		result = append(result, claudeContent)
+		result = append(result, entry)
 	}
 	return result
 }

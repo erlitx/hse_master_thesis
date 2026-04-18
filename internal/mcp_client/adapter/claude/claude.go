@@ -32,20 +32,19 @@ func New(apiKey string) *Client {
 
 // SendMessage sends a message to Claude API
 func (c *Client) SendMessage(ctx context.Context, req dto.ClaudeRequest) (*dto.ClaudeResponse, error) {
-	log.Debug().
-		Str("model", req.Model).
-		Int("max_tokens", req.MaxTokens).
-		Int("messages_count", len(req.Messages)).
-		Msg("sending message to Claude API")
+	return c.send(ctx, req)
+}
 
+// SendGatewayMessage sends a manual gateway request to Claude API.
+func (c *Client) SendGatewayMessage(ctx context.Context, req dto.ManualGatewayRequest) (*dto.ClaudeResponse, error) {
+	return c.send(ctx, req)
+}
+
+func (c *Client) send(ctx context.Context, req interface{}) (*dto.ClaudeResponse, error) {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
-
-	log.Debug().
-		Str("request_body", string(jsonData)).
-		Msg("Claude API request")
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, claudeAPIURL, bytes.NewReader(jsonData))
 	if err != nil {
@@ -86,6 +85,6 @@ func (c *Client) SendMessage(ctx context.Context, req dto.ClaudeRequest) (*dto.C
 		Int("input_tokens", claudeResp.Usage.InputTokens).
 		Int("output_tokens", claudeResp.Usage.OutputTokens).
 		Msgf("successfully received response from Claude: %+v", claudeResp)
-	
+
 	return &claudeResp, nil
 }

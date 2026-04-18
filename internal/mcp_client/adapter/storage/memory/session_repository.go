@@ -26,8 +26,14 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.S
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, exists := r.sessions[session.ID]; exists {
-		return fmt.Errorf("session with ID %s already exists", session.ID)
+	if existing, exists := r.sessions[session.ID]; exists {
+		// Idempotent create: copy stored canonical session back to caller
+		// so caller does not continue with a partial payload.
+		sessionCopy := *existing
+		sessionCopy.Messages = make([]domain.Message, len(existing.Messages))
+		copy(sessionCopy.Messages, existing.Messages)
+		*session = sessionCopy
+		return nil
 	}
 
 	// Create a copy to avoid external mutations
