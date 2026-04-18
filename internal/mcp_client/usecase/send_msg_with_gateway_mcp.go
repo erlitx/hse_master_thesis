@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/erlitx/mcp_server/internal/dto"
+	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
 	"github.com/rs/zerolog/log"
 )
 

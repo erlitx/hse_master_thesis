@@ -10,6 +10,7 @@ import (
 	"github.com/erlitx/mcp_server/config"
 	"github.com/erlitx/mcp_server/internal/mcp_client/adapter/claude"
 	"github.com/erlitx/mcp_server/internal/mcp_client/adapter/mcpclient"
+	"github.com/erlitx/mcp_server/internal/mcp_client/adapter/storage/memory"
 	httpcontroller "github.com/erlitx/mcp_server/internal/mcp_client/controller/http"
 	"github.com/erlitx/mcp_server/internal/mcp_client/usecase"
 	"github.com/erlitx/mcp_server/pkg/httpserver"
@@ -30,8 +31,11 @@ func Run(ctx context.Context, cfg config.Config) error {
 	// Claude API Client
 	claudeClient := claude.New(cfg.Claude.APIKey)
 
+	// Session Repository (in-memory)
+	sessionRepo := memory.New()
+
 	// --- Usecase layer ---
-	uc := usecase.New(mcpClient, claudeClient)
+	uc := usecase.New(mcpClient, claudeClient, sessionRepo)
 
 	// --- HTTP Router ---
 	router := chi.NewRouter()

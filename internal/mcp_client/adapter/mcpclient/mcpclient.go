@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/erlitx/mcp_server/internal/dto"
+	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/rs/zerolog/log"
 )
@@ -106,6 +106,38 @@ func (c *Client) ReadResource(ctx context.Context, uri string) (*dto.MCPResource
 
 	log.Debug().Str("uri", uri).Int("content_length", len(contentText)).Msg("successfully read resource")
 	return resource, nil
+}
+
+// ListTools fetches all available tools from the MCP server.
+func (c *Client) ListTools(ctx context.Context) ([]dto.MCPToolInfo, error) {
+	log.Debug().Str("server_url", c.serverURL).Msg("listing tools from MCP server")
+
+	var rawResult struct {
+		Tools []dto.MCPToolInfo `json:"tools"`
+	}
+	if err := c.call(ctx, "tools/list", nil, &rawResult); err != nil {
+		return nil, fmt.Errorf("failed to list tools: %w", err)
+	}
+
+	log.Info().Int("count", len(rawResult.Tools)).Msg("successfully fetched tools")
+	return rawResult.Tools, nil
+}
+
+// CallTool executes a specific MCP tool with JSON-RPC tools/call.
+func (c *Client) CallTool(ctx context.Context, name string, arguments map[string]interface{}) (map[string]interface{}, error) {
+	log.Debug().Str("tool_name", name).Msg("calling MCP tool")
+
+	params := dto.MCPToolCallRequest{
+		Name:      name,
+		Arguments: arguments,
+	}
+
+	var result map[string]interface{}
+	if err := c.call(ctx, "tools/call", params, &result); err != nil {
+		return nil, fmt.Errorf("failed to call tool %s: %w", name, err)
+	}
+
+	return result, nil
 }
 
 func (c *Client) call(ctx context.Context, method string, params interface{}, result interface{}) error {

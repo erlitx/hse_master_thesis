@@ -40,7 +40,7 @@ type Claude struct {
 }
 
 type MCPServerConnection struct {
-	Addr string `envconfig:"MCP_SERVER_ADDR" default:"http://localhost:8081/api/v1/mcp"`
+	Addr string `envconfig:"MCP_SERVER_ADDR" required:"true"`
 }
 
 type Config struct {
