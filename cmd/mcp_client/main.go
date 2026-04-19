@@ -15,7 +15,7 @@ func main() {
 		AppName:       "MCP_CLIENT",
 		AppVersion:    "v0.1.0",
 		PrettyConsole: true,
-		Level:         "debug", // force
+		Level:         "info", // force
 		Env:           os.Getenv("APP_ENV"),
 	})
 

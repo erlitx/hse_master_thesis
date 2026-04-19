@@ -49,6 +49,11 @@ mod-update:
 lint:
 	golangci-lint run
 
+
+logs-mcp-server:	
+	docker compose logs -f mcp_server --tail=200
+
+
 # test:
 # 	go test -v -cover ./...
 

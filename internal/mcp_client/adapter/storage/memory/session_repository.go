@@ -32,6 +32,8 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.S
 		sessionCopy := *existing
 		sessionCopy.Messages = make([]domain.Message, len(existing.Messages))
 		copy(sessionCopy.Messages, existing.Messages)
+		sessionCopy.Tools = make([]domain.ToolDefinition, len(existing.Tools))
+		copy(sessionCopy.Tools, existing.Tools)
 		*session = sessionCopy
 		return nil
 	}
@@ -40,6 +42,8 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.S
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)
+	sessionCopy.Tools = make([]domain.ToolDefinition, len(session.Tools))
+	copy(sessionCopy.Tools, session.Tools)
 
 	r.sessions[session.ID] = &sessionCopy
 	return nil
@@ -59,6 +63,8 @@ func (r *SessionRepository) GetSession(ctx context.Context, sessionID string) (*
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)
+	sessionCopy.Tools = make([]domain.ToolDefinition, len(session.Tools))
+	copy(sessionCopy.Tools, session.Tools)
 
 	return &sessionCopy, nil
 }
@@ -76,6 +82,8 @@ func (r *SessionRepository) SaveSession(ctx context.Context, session *domain.Ses
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)
+	sessionCopy.Tools = make([]domain.ToolDefinition, len(session.Tools))
+	copy(sessionCopy.Tools, session.Tools)
 
 	r.sessions[session.ID] = &sessionCopy
 	return nil

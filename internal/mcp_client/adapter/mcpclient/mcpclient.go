@@ -162,7 +162,7 @@ func (c *Client) call(ctx context.Context, method string, params interface{}, re
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	log.Debug().Msgf("----------BODY: %v", string(requestBody))
+	log.Debug().Msgf("BODY: %v", string(requestBody))
 	log.Debug().
 		Str("method", method).
 		Int64("request_id", requestID).

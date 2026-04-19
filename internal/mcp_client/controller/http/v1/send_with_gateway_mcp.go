@@ -36,24 +36,25 @@ func (h *Handlers) SendWithGatewayMCP(w http.ResponseWriter, r *http.Request) {
 		maxTokens = h.config.Claude.MaxTokens
 	}
 
-	systemPrompt := req.System
-	if systemPrompt == "" {
-		systemPrompt = "You are a data analyst that generates SQL queries for analytical dashboards. Your task is to return ONLY a valid SQL query that will be executed against a ClickHouse database. STRICT RULES:- Output ONLY SQL. No explanations, no markdown, no text.- Generate a single SELECT query.- Prefer SIMPLE queries over complex ones. - Return ONLY the minimum required columns to answer the question.- Do NOT include extra metrics unless explicitly requested. - Group ONLY by necessary dimensions. - Use clear and concise aliases. - The query must be production-ready and efficient. Do not explain your reasoning. Do not describe the query. Only output SQL. If the user request is ambiguous and requires clarification, ask a question instead of generating a query"
+	system := req.System
+	if system == "" {
+		system = "You are a data analyst that generates SQL queries for analytical dashboards. Your task is to return ONLY a valid SQL query that will be executed against a ClickHouse database. STRICT RULES:- Output ONLY SQL. No explanations, no markdown, no text.- Generate a single SELECT query.- Prefer SIMPLE queries over complex ones. - Return ONLY the minimum required columns to answer the question.- Do NOT include extra metrics unless explicitly requested. - Group ONLY by necessary dimensions. - Use clear and concise aliases. - The query must be production-ready and efficient. Do not explain your reasoning. Do not describe the query. Only output SQL. If the user request is ambiguous and requires clarification, ask a question instead of generating a query"
+	}
+
+	input := dto.GatewayConversationInput{
+		Message:   req.Message,
+		SessionID: req.SessionID,
+		Model:     model,
+		MaxTokens: maxTokens,
+		System:    system,
 	}
 
 	log.Info().
-		Str("message", req.Message).
-		Str("session_id", stringPtrToString(req.SessionID)).
+		Str("message", input.Message).
+		Str("session_id", stringPtrToString(input.SessionID)).
 		Msg("received gateway conversation request")
 
-	session, err := h.usecase.HandleGatewayConversation(
-		ctx,
-		req.Message,
-		req.SessionID,
-		model,
-		maxTokens,
-		systemPrompt,
-	)
+	session, err := h.usecase.HandleGatewayConversation(ctx, input)
 	if err != nil {
 		render.ErrorSpecific(w, err, mcpClientErrorMappings)
 		return

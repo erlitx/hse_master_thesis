@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 func (uc *UseCase) getOrCreateSession(ctx context.Context, sessionID *string, model string) (*domain.Session, error) {
 	if sessionID != nil && *sessionID != "" {
 		session, err := uc.sessionRepo.GetSession(ctx, *sessionID)
@@ -28,7 +27,7 @@ func (uc *UseCase) getOrCreateSession(ctx context.Context, sessionID *string, mo
 		Model:       model,
 		TotalTokens: 0,
 	}
-	
+
 	err := uc.sessionRepo.CreateSession(ctx, session)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)

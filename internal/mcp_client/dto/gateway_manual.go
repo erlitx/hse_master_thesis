@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/erlitx/mcp_server/internal/mcp_client/domain"
+
 // GatewayConversationRequest is the request payload for manual gateway orchestration.
 // It mirrors ConversationRequest but is dedicated to the /gateway flow.
 type GatewayConversationRequest struct {
@@ -8,6 +10,15 @@ type GatewayConversationRequest struct {
 	Model     string  `json:"model,omitempty"`
 	MaxTokens int     `json:"max_tokens,omitempty"`
 	System    string  `json:"system,omitempty"`
+}
+
+// GatewayConversationInput is the resolved gateway use case input (defaults applied outside the use case).
+type GatewayConversationInput struct {
+	Message   string
+	SessionID *string
+	Model     string
+	MaxTokens int
+	System    string
 }
 
 // ClaudeToolDefinition describes a Claude-native tool in manual mode.
@@ -25,6 +36,21 @@ type ManualGatewayRequest struct {
 	System    string                 `json:"system,omitempty"`
 	Messages  []ClaudeMessage        `json:"messages"`
 	Tools     []ClaudeToolDefinition `json:"tools,omitempty"`
+}
+
+// ManualGatewayRequestFromSession builds a Claude manual-gateway request from the current session snapshot.
+// The session must carry gateway options (GatewayModel, GatewayMaxTokens, GatewaySystem), messages, and tools.
+func ManualGatewayRequestFromSession(s *domain.Session) ManualGatewayRequest {
+	if s == nil {
+		return ManualGatewayRequest{}
+	}
+	return ManualGatewayRequest{
+		Model:     s.GatewayModel,
+		MaxTokens: s.GatewayMaxTokens,
+		System:    s.GatewaySystem,
+		Messages:  FromDomainMessages(s.Messages),
+		Tools:     ClaudeToolDefinitionsFromDomain(s.Tools),
+	}
 }
 
 // ToolUseContent represents assistant tool invocation block returned by Claude.
@@ -57,4 +83,36 @@ type MCPToolInfo struct {
 	Description string                 `json:"description,omitempty"`
 	// MCP tools/list returns this field as "inputSchema" (camelCase).
 	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
+}
+
+// DomainToolsFromMCPTools maps MCP list output into session domain tools.
+func DomainToolsFromMCPTools(tools []MCPToolInfo) []domain.ToolDefinition {
+	if len(tools) == 0 {
+		return nil
+	}
+	out := make([]domain.ToolDefinition, 0, len(tools))
+	for _, t := range tools {
+		out = append(out, domain.ToolDefinition{
+			Name:        t.Name,
+			Description: t.Description,
+			InputSchema: t.InputSchema,
+		})
+	}
+	return out
+}
+
+// ClaudeToolDefinitionsFromDomain maps stored session tools into Claude manual-gateway request shape.
+func ClaudeToolDefinitionsFromDomain(tools []domain.ToolDefinition) []ClaudeToolDefinition {
+	if len(tools) == 0 {
+		return nil
+	}
+	out := make([]ClaudeToolDefinition, 0, len(tools))
+	for _, t := range tools {
+		out = append(out, ClaudeToolDefinition{
+			Name:        t.Name,
+			Description: t.Description,
+			InputSchema: t.InputSchema,
+		})
+	}
+	return out
 }
