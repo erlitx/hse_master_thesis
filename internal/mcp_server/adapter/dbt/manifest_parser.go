@@ -10,23 +10,20 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_server/dto"
 )
 
-// ParseManifest reads and parses the manifest.json file
+// Парсит manifest DBT из файла
 func (mp *DbtParser) ParseManifest(ctx context.Context) (*domain.DBTManifest, error) {
 
 	// TODO: start dbt parser in background and return cached manifest until it's ready, then switch to new one
-	// Read the manifest file
 	data, err := os.ReadFile(mp.manifestPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest file: %w", err)
 	}
 
-	// Parse JSON
 	var manifest dto.ManifestJSON
 	if err := json.Unmarshal(data, &manifest); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal manifest JSON: %w", err)
 	}
 
-	// Convert to domain objects
 	result := &domain.DBTManifest{
 		Models: make([]domain.DBTModel, 0),
 	}

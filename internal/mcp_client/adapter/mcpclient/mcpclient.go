@@ -14,12 +14,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// HTTP-клиент
 type Client struct {
 	httpClient *http.Client
 	serverURL  string
 	requestID  atomic.Int64
 }
 
+// Создаёт новый экземпляр
 func New(serverURL string) (*Client, error) {
 	return &Client{
 		httpClient: &http.Client{},
@@ -27,11 +29,10 @@ func New(serverURL string) (*Client, error) {
 	}, nil
 }
 
-// ListResources fetches all available resources from the MCP server
+// Список ресурсов MCP-сервера
 func (c *Client) ListResources(ctx context.Context) ([]dto.MCPResource, error) {
 	log.Debug().Str("server_url", c.serverURL).Msg("listing resources from MCP server")
 
-	// Call resources/list using MCP types
 	var listResult mcp.ListResourcesResult
 	if err := c.call(ctx, "resources/list", nil, &listResult); err != nil {
 		return nil, fmt.Errorf("failed to list resources: %w", err)
@@ -39,7 +40,6 @@ func (c *Client) ListResources(ctx context.Context) ([]dto.MCPResource, error) {
 
 	log.Debug().Int("count", len(listResult.Resources)).Msg("fetched resource list")
 
-	// Convert MCP resources to our DTO format and fetch content
 	resources := make([]dto.MCPResource, 0, len(listResult.Resources))
 	for _, res := range listResult.Resources {
 		// Read the actual resource content
@@ -55,18 +55,16 @@ func (c *Client) ListResources(ctx context.Context) ([]dto.MCPResource, error) {
 	return resources, nil
 }
 
-// ReadResource fetches a specific resource by URI
+// Читает ресурс MCP по URI
 func (c *Client) ReadResource(ctx context.Context, uri string) (*dto.MCPResource, error) {
 	log.Debug().Str("uri", uri).Msg("reading resource from MCP server")
 
-	// Call resources/read using custom unmarshaling
 	params := struct {
 		URI string `json:"uri"`
 	}{
 		URI: uri,
 	}
 
-	// Use a custom result structure to handle the contents manually
 	var rawResult struct {
 		Contents []map[string]any `json:"contents"`
 	}
@@ -78,17 +76,14 @@ func (c *Client) ReadResource(ctx context.Context, uri string) (*dto.MCPResource
 		return nil, fmt.Errorf("no content returned for resource %s", uri)
 	}
 
-	// Parse the first content using mcp.ParseResourceContents
 	firstContent, err := mcp.ParseResourceContents(rawResult.Contents[0])
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse resource contents: %w", err)
 	}
 
-	// Extract text content based on the type
 	var contentText string
 	var mimeType string
 
-	// Try to use AsTextResourceContents helper
 	if textContent, ok := mcp.AsTextResourceContents(firstContent); ok {
 		contentText = textContent.Text
 		mimeType = textContent.MIMEType
@@ -108,7 +103,7 @@ func (c *Client) ReadResource(ctx context.Context, uri string) (*dto.MCPResource
 	return resource, nil
 }
 
-// ListTools fetches all available tools from the MCP server.
+// Список инструментов MCP
 func (c *Client) ListTools(ctx context.Context) ([]dto.MCPToolInfo, error) {
 	log.Debug().Str("server_url", c.serverURL).Msg("listing tools from MCP server")
 
@@ -123,7 +118,7 @@ func (c *Client) ListTools(ctx context.Context) ([]dto.MCPToolInfo, error) {
 	return rawResult.Tools, nil
 }
 
-// CallTool executes a specific MCP tool with JSON-RPC tools/call.
+// Вызывает MCP-инструмент
 func (c *Client) CallTool(ctx context.Context, name string, arguments map[string]interface{}) (map[string]interface{}, error) {
 	log.Debug().Str("tool_name", name).Msg("calling MCP tool")
 
@@ -140,9 +135,11 @@ func (c *Client) CallTool(ctx context.Context, name string, arguments map[string
 	return result, nil
 }
 
+// JSON-RPC вызов к MCP-серверу
 func (c *Client) call(ctx context.Context, method string, params interface{}, result interface{}) error {
 	requestID := c.requestID.Add(1)
 
+	// Тип jsonRPCRequest
 	type jsonRPCRequest struct {
 		JSONRPC string      `json:"jsonrpc"`
 		ID      int64       `json:"id"`
@@ -219,8 +216,7 @@ func (c *Client) call(ctx context.Context, method string, params interface{}, re
 	return nil
 }
 
-// Close closes the MCP client connection
+// Закрывает соединение
 func (c *Client) Close() error {
-	// HTTP client doesn't need explicit closing
 	return nil
 }

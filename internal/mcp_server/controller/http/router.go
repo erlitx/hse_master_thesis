@@ -10,9 +10,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Регистрирует HTTP-маршруты
 func ProfileRouter(cfg config.Config, r *chi.Mux, uc *usecase.UseCase) error {
 	v1Handler := v1.New(uc)
-	// Register MCP server handler
 	mcpHandler := mcpserver.New(cfg, uc)
 
 	r.Use(middleware.RequestID)
@@ -31,6 +31,7 @@ func ProfileRouter(cfg config.Config, r *chi.Mux, uc *usecase.UseCase) error {
 
 			// DBT manifest endpoint
 			r.Get("/dbt/manifest", v1Handler.GetManifest)
+			r.Post("/bitool/create_dataset", v1Handler.CreateDataset)
 		})
 	})
 

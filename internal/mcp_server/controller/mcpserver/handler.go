@@ -7,8 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// Handler wires MCP protocol handlers to the usecase layer.
-// All registration methods (tools/resources/prompts) are methods on this struct.
+// Обработчик MCP: связывает протокол со слоем usecase
 type Handler struct {
 	cfg config.Config
 	uc  *usecase.UseCase
@@ -16,6 +15,7 @@ type Handler struct {
 	modelByName map[string]domain.DBTModel
 }
 
+// Создаёт новый экземпляр
 func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 	s := server.NewMCPServer(
 		cfg.MCPServer.Name,
@@ -33,18 +33,21 @@ func New(cfg config.Config, uc *usecase.UseCase) *Handler {
 	return h
 }
 
+// Регистрирует MCP-инструменты
 func (h *Handler) registerTools() {
 	h.registerClickHouseTools()
 	h.registerManifestTools()
 }
 
+// Регистрирует MCP-ресурсы
 func (h *Handler) registerResources() {
-	h.registerTimeResources()
 	h.registerManifestResources()
 }
 
+// Регистрирует MCP-промпты
 func (h *Handler) registerPrompts() {
 	h.registerGreetingPrompt()
 }
 
+// Возвращает экземпляр MCP-сервера
 func (h *Handler) Server() *server.MCPServer { return h.srv }

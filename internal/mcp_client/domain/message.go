@@ -2,15 +2,13 @@ package domain
 
 import "time"
 
-// Session represents a conversation session with Claude
+// Сессия диалога
 type Session struct {
 	ID          string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Messages    []Message
-	// Tools holds MCP tool definitions (from tools/list) for gateway flows; converted to API DTOs when calling Claude.
 	Tools       []ToolDefinition
-	// GatewayModel, GatewayMaxTokens, GatewaySystem are the caller-selected Claude request options for the manual gateway flow.
 	GatewayModel     string
 	GatewayMaxTokens int
 	GatewaySystem    string
@@ -19,14 +17,14 @@ type Session struct {
 	TotalTokens      int
 }
 
-// ToolDefinition is a normalized MCP tool descriptor stored on the session transcript model.
+// Описание MCP-инструмента
 type ToolDefinition struct {
 	Name        string
 	Description string
 	InputSchema map[string]interface{}
 }
 
-// Message represents a single message in a conversation with Claude
+// Сообщение в сессии
 type Message struct {
 	ID           string
 	SessionID    string
@@ -37,8 +35,9 @@ type Message struct {
 	OutputTokens int
 }
 
+// Блок контента сообщения
 type Content struct {
-	Type      string
+	Type      string	// "text", "tool_use", "tool_result"
 	Text      string
 	ID        string
 	ToolUseID string

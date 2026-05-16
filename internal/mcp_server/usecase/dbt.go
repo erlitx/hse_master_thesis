@@ -7,7 +7,7 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
-// GetDBTManifest retrieves the cached DBT manifest
+// Загружает manifest DBT
 func (uc *UseCase) GetDBTManifest(ctx context.Context) (*domain.DBTManifest, error) {
 	manifest, err := uc.manifestCache.Get(ctx)
 	if err != nil {

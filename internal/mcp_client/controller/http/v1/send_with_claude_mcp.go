@@ -12,25 +12,21 @@ import (
 
 const MCP_SERVER_NAME = "analytics"
 
-// SendWithClaudeMCP handles POST /api/v1/claude
-// Manages conversation with Claude, supporting both new and existing sessions
+// HTTP: сообщение через Claude MCP
 func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parse request body
 	var req dto.ConversationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		render.Error(w, err, http.StatusBadRequest, "failed to decode request body")
 		return
 	}
 
-	// Validate request
 	if req.Message == "" {
 		render.Error(w, fmt.Errorf("message field is empty"), http.StatusBadRequest, "message is required")
 		return
 	}
 
-	// Set defaults if not provided
 	model := req.Model
 	if model == "" {
 		model = h.config.Claude.Model
@@ -51,7 +47,6 @@ func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 		Str("session_id", stringPtrToString(req.SessionID)).
 		Msg("received conversation request")
 
-	// Call usecase to handle conversation
 	session, err := h.usecase.HandleConversation(
 		ctx,
 		req.Message,
@@ -67,14 +62,12 @@ func (h *Handlers) SendWithClaudeMCP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert domain session to DTO response
 	response := dto.FromSession(session)
 
-	// Return successful response
 	render.JSON(w, response, http.StatusOK)
 }
 
-// Helper function to convert string pointer to string
+// Разыменовывает *string или пустая строка
 func stringPtrToString(s *string) string {
 	if s == nil {
 		return ""

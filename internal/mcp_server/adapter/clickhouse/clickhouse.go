@@ -6,20 +6,24 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 )
 
+// Адаптер ClickHouse
 type ClickHouse struct {
 	conn clickhouse.Conn
 }
 
+// Создаёт новый экземпляр
 func New(ch clickhouse.Conn) *ClickHouse {
 	return &ClickHouse{
 		conn: ch,
 	}
 }
 
+// Возвращает соединение ClickHouse
 func (ch *ClickHouse) Conn() clickhouse.Conn {
 	return ch.conn
 }
 
+// Закрывает соединение
 func (ch *ClickHouse) Close() error {
 	if ch == nil || ch.conn == nil {
 		return nil

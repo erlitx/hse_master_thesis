@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Проверяет соединение с ClickHouse
 func (ch *ClickHouse) PingTest(ctx context.Context) error {
 	var now time.Time
 	if err := ch.conn.QueryRow(ctx, "SELECT now()").Scan(&now); err != nil {

@@ -8,10 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Ошибка для JSON-ответа
 type Err struct {
 	Error string `json:"error"`
 }
 
+// Отправляет JSON с ошибкой
 func Error(w http.ResponseWriter, err error, status int, message string) {
 	log.Error().Err(err).Msg(message)
 
@@ -21,6 +23,7 @@ func Error(w http.ResponseWriter, err error, status int, message string) {
 	JSON(w, Err{Error: err.Error()}, status)
 }
 
+// Раскрывает обёрнутую ошибку
 func unpack(err error) error {
 	for {
 		e := errors.Unwrap(err)
@@ -34,7 +37,7 @@ func unpack(err error) error {
 	return err
 }
 
-// ErrorSpecific maps domain errors to appropriate HTTP status codes and messages
+// Отправляет ошибку по карте доменных кодов
 func ErrorSpecific(w http.ResponseWriter, err error, domainErrors map[error]ErrorMapping) {
 	status, message := mapError(err, domainErrors)
 
@@ -46,12 +49,13 @@ func ErrorSpecific(w http.ResponseWriter, err error, domainErrors map[error]Erro
 	JSON(w, Err{Error: err.Error()}, status)
 }
 
-// ErrorMapping defines HTTP status and message for a domain error
+// Сопоставление доменной ошибки и HTTP
 type ErrorMapping struct {
 	Status  int
 	Message string
 }
 
+// Сопоставляет ошибку со статусом HTTP
 func mapError(err error, domainErrors map[error]ErrorMapping) (int, string) {
 	for domainErr, mapping := range domainErrors {
 		if errors.Is(err, domainErr) {
@@ -59,6 +63,5 @@ func mapError(err error, domainErrors map[error]ErrorMapping) (int, string) {
 		}
 	}
 
-	// Default to internal server error
 	return http.StatusInternalServerError, "internal server error"
 }

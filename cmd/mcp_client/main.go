@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Точка входа приложения
 func main() {
 	logger.Init(logger.Config{
 		AppName:       "MCP_CLIENT",

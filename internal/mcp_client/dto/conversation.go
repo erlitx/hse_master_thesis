@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// ConversationRequest represents the HTTP request for conversation endpoint
+// Запрос диалога
 type ConversationRequest struct {
 	Message   string  `json:"message" validate:"required"`
 	SessionID *string `json:"session_id,omitempty"`
@@ -16,7 +16,7 @@ type ConversationRequest struct {
 	System    string  `json:"system,omitempty"`
 }
 
-// ConversationResponse represents the HTTP response for conversation endpoint
+// Ответ диалога
 type ConversationResponse struct {
 	SessionID  string     `json:"session_id"`
 	Response   string     `json:"response"`
@@ -26,7 +26,7 @@ type ConversationResponse struct {
 	CreatedAt  time.Time  `json:"created_at"`
 }
 
-// ToUserMessage converts the request message to a domain Message
+// Преобразует запрос в domain.Message
 func (r *ConversationRequest) ToUserMessage(sessionID string) domain.Message {
 	return domain.Message{
 		ID:        uuid.New().String(),
@@ -44,9 +44,8 @@ func (r *ConversationRequest) ToUserMessage(sessionID string) domain.Message {
 	}
 }
 
-// FromSession converts a domain Session to ConversationResponse DTO
+// Формирует ответ диалога из сессии
 func FromSession(session *domain.Session) *ConversationResponse {
-	// Get the last assistant message as response
 	response := ""
 	var inputTokens, outputTokens int
 
@@ -72,7 +71,7 @@ func FromSession(session *domain.Session) *ConversationResponse {
 	}
 }
 
-// extractTextFromContent extracts only text content from Content array
+// Извлекает текст из блоков контента
 func extractTextFromContent(content []domain.Content) string {
 	if len(content) == 0 {
 		return ""
@@ -87,7 +86,7 @@ func extractTextFromContent(content []domain.Content) string {
 	return result
 }
 
-// FromDomainMessages converts domain Messages to Claude API messages format
+// Конвертирует сообщения в ClaudeMessage
 func FromDomainMessages(messages []domain.Message) []ClaudeMessage {
 	claudeMessages := make([]ClaudeMessage, 0, len(messages))
 	for _, msg := range messages {
@@ -99,7 +98,7 @@ func FromDomainMessages(messages []domain.Message) []ClaudeMessage {
 	return claudeMessages
 }
 
-// ToDomainContent converts DTO ClaudeContent to domain Content
+// Конвертирует ClaudeContent в domain.Content
 func ToDomainContent(dtoContent []ClaudeContent) []domain.Content {
 	if len(dtoContent) == 0 {
 		return nil
@@ -135,13 +134,12 @@ func ToDomainContent(dtoContent []ClaudeContent) []domain.Content {
 	return result
 }
 
-// fromDomainContent converts domain Content to DTO format for Claude API
+// Конвертирует domain.Content для Claude
 func fromDomainContent(domainContent []domain.Content) interface{} {
 	if len(domainContent) == 0 {
 		return ""
 	}
 
-	// If there's only one text content, return as string for simplicity
 	if len(domainContent) == 1 && domainContent[0].Type == "text" {
 		return domainContent[0].Text
 	}
@@ -149,6 +147,7 @@ func fromDomainContent(domainContent []domain.Content) interface{} {
 	return fromDomainContentBlocks(domainContent)
 }
 
+// Конвертирует блоки контента для gateway
 func fromDomainContentBlocks(domainContent []domain.Content) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(domainContent))
 	for _, c := range domainContent {

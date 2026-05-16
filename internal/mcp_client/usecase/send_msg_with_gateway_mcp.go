@@ -10,26 +10,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SendMessage orchestrates the flow of:
-// 1. Fetching resources from MCP server
-// 2. Building Claude request with resources as context
-// 3. Sending to Claude API
-// 4. Returning formatted response
+// Отправляет сообщение через gateway MCP
 func (uc *UseCase) SendMessage(ctx context.Context, message string, model string, maxTokens int) (*dto.SendMessageResponse, error) {
 	log.Info().Str("message", message).Msg("processing send message request")
 
-	// Step 1: Fetch all resources from MCP server
-	resources, err := uc.mcpClient.ListResources(ctx)
+	resources, err := uc.MCPServer.ListResources(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch resources from MCP server: %w", err)
 	}
 
 	log.Debug().Int("resources_count", len(resources)).Msg("fetched resources from MCP server")
 
-	// Step 2: Build system context from resources
 	systemContext := buildSystemContext(resources)
 
-	// Step 3: Build Claude request
 	claudeReq := dto.ClaudeRequest{
 		Model:     model,
 		MaxTokens: maxTokens,
@@ -42,16 +35,13 @@ func (uc *UseCase) SendMessage(ctx context.Context, message string, model string
 		},
 	}
 
-	// Step 4: Send to Claude API
 	claudeResp, err := uc.claudeClient.SendMessage(ctx, claudeReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message to Claude: %w", err)
 	}
 
-	// Step 5: Extract response text
 	responseText := extractResponseText(claudeResp)
 
-	// Step 6: Build response with resource metadata
 	response := &dto.SendMessageResponse{
 		Response:      responseText,
 		ResourcesUsed: buildResourceInfoList(resources),
@@ -71,7 +61,7 @@ func (uc *UseCase) SendMessage(ctx context.Context, message string, model string
 	return response, nil
 }
 
-// buildSystemContext creates a system message with all MCP resources as context
+// Формирует системный контекст из ресурсов
 func buildSystemContext(resources []dto.MCPResource) string {
 	if len(resources) == 0 {
 		return ""
@@ -96,13 +86,12 @@ func buildSystemContext(resources []dto.MCPResource) string {
 	return sb.String()
 }
 
-// extractResponseText extracts the text content from Claude's response
+// Извлекает текст из ответа Claude
 func extractResponseText(resp *dto.ClaudeResponse) string {
 	if len(resp.Content) == 0 {
 		return ""
 	}
 
-	// Combine all text content blocks
 	var sb strings.Builder
 	for _, content := range resp.Content {
 		if content.Type == "text" {
@@ -113,7 +102,7 @@ func extractResponseText(resp *dto.ClaudeResponse) string {
 	return sb.String()
 }
 
-// buildResourceInfoList creates a list of resource metadata for the response
+// Собирает список метаданных ресурсов
 func buildResourceInfoList(resources []dto.MCPResource) []dto.ResourceInfo {
 	result := make([]dto.ResourceInfo, len(resources))
 	for i, resource := range resources {
@@ -132,9 +121,8 @@ func buildResourceInfoList(resources []dto.MCPResource) []dto.ResourceInfo {
 	return result
 }
 
-// extractNameFromURI extracts a readable name from the resource URI
+// Извлекает имя ресурса из URI
 func extractNameFromURI(uri string) string {
-	// Extract the last part of the URI as the name
 	parts := strings.Split(uri, "/")
 	if len(parts) > 0 {
 		return parts[len(parts)-1]
@@ -142,7 +130,7 @@ func extractNameFromURI(uri string) string {
 	return uri
 }
 
-// parseResourceContent attempts to parse resource content as JSON for better formatting
+// Парсит содержимое ресурса
 func parseResourceContent(content string) string {
 	var data interface{}
 	if err := json.Unmarshal([]byte(content), &data); err != nil {
@@ -150,7 +138,6 @@ func parseResourceContent(content string) string {
 		return content
 	}
 
-	// Re-marshal with indentation
 	formatted, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return content

@@ -1,11 +1,11 @@
 package dbt
 
-// ManifestParser handles parsing of DBT manifest.json files
+// Парсер manifest DBT
 type DbtParser struct {
 	manifestPath string
 }
 
-// New creates a new ManifestParser with the specified manifest file path
+// Создаёт новый экземпляр
 func New(manifestPath string) *DbtParser {
 	return &DbtParser{
 		manifestPath: manifestPath,

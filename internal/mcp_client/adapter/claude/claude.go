@@ -18,11 +18,13 @@ const (
 	anthropicBeta    = "mcp-client-2025-11-20"
 )
 
+// HTTP-клиент
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
 }
 
+// Создаёт новый экземпляр
 func New(apiKey string) *Client {
 	return &Client{
 		apiKey:     apiKey,
@@ -30,16 +32,17 @@ func New(apiKey string) *Client {
 	}
 }
 
-// SendMessage sends a message to Claude API
+// Отправляет сообщение через gateway MCP
 func (c *Client) SendMessage(ctx context.Context, req dto.ClaudeRequest) (*dto.ClaudeResponse, error) {
 	return c.send(ctx, req)
 }
 
-// SendGatewayMessage sends a manual gateway request to Claude API.
+// Отправляет запрос в формате gateway
 func (c *Client) SendGatewayMessage(ctx context.Context, req dto.ManualGatewayRequest) (*dto.ClaudeResponse, error) {
 	return c.send(ctx, req)
 }
 
+// Выполняет HTTP-запрос к Claude API
 func (c *Client) send(ctx context.Context, req interface{}) (*dto.ClaudeResponse, error) {
 	jsonData, err := json.Marshal(req)
 	if err != nil {

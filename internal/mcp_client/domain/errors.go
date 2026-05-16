@@ -3,20 +3,20 @@ package domain
 import "errors"
 
 var (
-	// Session errors
+	// Ошибки сессии
 	ErrSessionNotFound    = errors.New("session not found")
 	ErrSessionExists      = errors.New("session already exists")
 	ErrInvalidSessionID   = errors.New("invalid session id")
 
-	// Message errors
+	// Ошибки сообщений
 	ErrEmptyMessage       = errors.New("message cannot be empty")
 	ErrInvalidMessageRole = errors.New("invalid message role")
 
-	// Claude API errors
+	// Ошибки Claude API
 	ErrClaudeAPI          = errors.New("claude api error")
 	ErrClaudeRateLimited  = errors.New("claude rate limit exceeded")
 	ErrClaudeInvalidModel = errors.New("invalid claude model")
 
-	// Repository errors
+	// Ошибки хранилища
 	ErrRepositoryFailed   = errors.New("repository operation failed")
 )

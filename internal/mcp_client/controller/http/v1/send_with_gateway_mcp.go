@@ -10,8 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SendWithGatewayMCP handles POST /api/v1/chat/gateway
-// Manually orchestrates Claude <-> MCP tool calls with session persistence.
+// HTTP: диалог через gateway MCP
 func (h *Handlers) SendWithGatewayMCP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

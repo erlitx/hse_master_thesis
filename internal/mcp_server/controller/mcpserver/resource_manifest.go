@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Возвращает ресурсы DWH
 func (h *Handler) DWHResources(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	_ = req
 

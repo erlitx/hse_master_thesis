@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Загружает или создаёт сессию
 func (uc *UseCase) getOrCreateSession(ctx context.Context, sessionID *string, model string) (*domain.Session, error) {
 	if sessionID != nil && *sessionID != "" {
 		session, err := uc.sessionRepo.GetSession(ctx, *sessionID)

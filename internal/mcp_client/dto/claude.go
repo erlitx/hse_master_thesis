@@ -1,6 +1,6 @@
 package dto
 
-// ClaudeRequest represents a request to the Claude API
+// Запрос к Claude API
 type ClaudeRequest struct {
 	Model      string           `json:"model"`
 	MaxTokens  int              `json:"max_tokens"`
@@ -10,26 +10,26 @@ type ClaudeRequest struct {
 	Tools      []ClaudeToolInfo `json:"tools,omitempty"`
 }
 
-// MCPServerInfo represents MCP server configuration in Claude request
+// Описание MCP-сервера для Claude
 type MCPServerInfo struct {
 	Type string `json:"type"` // e.g., "url"
 	URL  string `json:"url"`
 	Name string `json:"name"`
 }
 
-// ClaudeToolInfo represents tool configuration in Claude request
+// Инструмент в запросе Claude
 type ClaudeToolInfo struct {
 	Type          string `json:"type"` // e.g., "mcp_toolset"
 	MCPServerName string `json:"mcp_server_name"`
 }
 
-// ClaudeMessage represents a single message in the conversation
+// Сообщение Claude
 type ClaudeMessage struct {
 	Role    string      `json:"role"` // "user" or "assistant"
 	Content interface{} `json:"content"` // string for user messages, []ClaudeContent for assistant messages
 }
 
-// ClaudeResponse represents a response from the Claude API
+// Ответ Claude API
 type ClaudeResponse struct {
 	ID           string          `json:"id"`
 	Type         string          `json:"type"`
@@ -40,7 +40,8 @@ type ClaudeResponse struct {
 	StopSequence *string         `json:"stop_sequence"`
 	Usage        ClaudeUsage     `json:"usage"`
 }
-// ClaudeContent represents content blocks in Claude's response
+
+// Блок контента Claude
 type ClaudeContent struct {
 	Type       string                 `json:"type"` // "text", "mcp_tool_use", "mcp_tool_result"
 	Text       string                 `json:"text,omitempty"`
@@ -53,7 +54,7 @@ type ClaudeContent struct {
 	Content    []ClaudeContent        `json:"content,omitempty"`     // for tool_result (nested content)
 }
 
-// ClaudeUsage contains token usage information from Claude
+// Использование токенов Claude
 type ClaudeUsage struct {
 	InputTokens  int `json:"input_tokens"`
 	OutputTokens int `json:"output_tokens"`

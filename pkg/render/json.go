@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Отправляет JSON HTTP-ответ
 func JSON(w http.ResponseWriter, body any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 

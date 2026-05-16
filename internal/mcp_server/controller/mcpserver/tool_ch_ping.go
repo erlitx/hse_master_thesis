@@ -6,6 +6,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+// Обработчик инструмента ping ClickHouse
 func (h *Handler) clickHousePing(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	err := h.uc.ClickHousePing(ctx)
 	if err != nil {

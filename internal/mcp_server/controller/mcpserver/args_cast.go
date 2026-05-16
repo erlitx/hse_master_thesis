@@ -1,5 +1,6 @@
 package mcpserver
 
+// Приводит значение к float64
 func asFloat(v interface{}) (float64, bool) {
 	switch x := v.(type) {
 	case float64:
@@ -18,8 +19,7 @@ func asFloat(v interface{}) (float64, bool) {
 	}
 }
 
-// jsonNumber is a tiny interface that matches encoding/json.Number without importing encoding/json here.
-// Some MCP hosts may pass numbers as json.Number when decoding args.
+// Числовое значение из JSON
 type jsonNumber interface {
 	Float64() (float64, error)
 }

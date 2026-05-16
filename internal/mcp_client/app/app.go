@@ -18,20 +18,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Запускает приложение
 func Run(ctx context.Context, cfg config.Config) error {
 	// --- Build adapters ---
 
-	// MCP Client (to communicate with mcp_server)
 	mcpClient, err := mcpclient.New(cfg.MCPServerConnection.Addr)
 	if err != nil {
 		return fmt.Errorf("failed to create MCP client: %w", err)
 	}
 	defer mcpClient.Close()
 
-	// Claude API Client
 	claudeClient := claude.New(cfg.Claude.APIKey)
 
-	// Session Repository (in-memory)
 	sessionRepo := memory.New()
 
 	// --- Usecase layer ---

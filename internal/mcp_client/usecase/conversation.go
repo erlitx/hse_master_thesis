@@ -12,8 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleConversation manages the conversation flow with Claude
-// It handles both new conversations and continuation of existing sessions
+// Ведёт диалог с Claude и MCP
 func (uc *UseCase) HandleConversation(
 	ctx context.Context,
 	userMessage string,
@@ -32,7 +31,6 @@ func (uc *UseCase) HandleConversation(
 	var session *domain.Session
 	var err error
 
-	// Step 1: Get or create session
 	if sessionID != nil && *sessionID != "" {
 		// Continue existing conversation
 		session, err = uc.sessionRepo.GetSession(ctx, *sessionID)
@@ -57,7 +55,6 @@ func (uc *UseCase) HandleConversation(
 		log.Debug().Str("session_id", session.ID).Msg("created new session")
 	}
 
-	// Step 2: Add user message to session
 	userMsg := domain.Message{
 		ID:        uuid.New().String(),
 		SessionID: session.ID,
@@ -77,7 +74,6 @@ func (uc *UseCase) HandleConversation(
 
 	log.Debug().Str("message_id", userMsg.ID).Msg("added user message to session")
 
-	// Step 3: Build Claude request with full conversation history
 	claudeMessages := dto.FromDomainMessages(session.Messages)
 	claudeReq := dto.ClaudeRequest{
 		Model:     model,
@@ -87,7 +83,6 @@ func (uc *UseCase) HandleConversation(
 	}
 
 
-	// Step 4: Send to Claude API
 	claudeResp, err := uc.claudeClient.SendMessage(ctx, claudeReq)
 	if err != nil {
 		// Save session even on error (to preserve user message)
@@ -101,10 +96,8 @@ func (uc *UseCase) HandleConversation(
 		Int("output_tokens", claudeResp.Usage.OutputTokens).
 		Msg("received response from Claude")
 
-	// Step 5: Convert assistant response content
 	assistantContent := dto.ToDomainContent(claudeResp.Content)
 
-	// Step 6: Add assistant message to session
 	assistantMsg := domain.Message{
 		ID:           uuid.New().String(),
 		SessionID:    session.ID,
@@ -122,7 +115,6 @@ func (uc *UseCase) HandleConversation(
 
 	log.Debug().Str("message_id", assistantMsg.ID).Msg("added assistant message to session")
 
-	// DEBUG
 	b, err := json.MarshalIndent(session, "", "  ")
 	if err != nil {
 		log.Error().Err(err).Msg("failed to marshal session")
@@ -131,7 +123,6 @@ func (uc *UseCase) HandleConversation(
 	log.Debug().Msgf("CONVERSATION:\n%s", string(b))
 	////
 
-	// Step 7: Save updated session
 	if err := uc.sessionRepo.SaveSession(ctx, session); err != nil {
 		return nil, fmt.Errorf("failed to save session: %w", err)
 	}
@@ -146,7 +137,7 @@ func (uc *UseCase) HandleConversation(
 	return session, nil
 }
 
-// Helper function to safely get string value or empty string
+// Возвращает строку или пустую
 func stringOrEmpty(s *string) string {
 	if s == nil {
 		return ""

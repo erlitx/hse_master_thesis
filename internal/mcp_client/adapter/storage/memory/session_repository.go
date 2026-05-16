@@ -8,20 +8,20 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_client/domain"
 )
 
-// SessionRepository implements domain.SessionRepository with in-memory storage
+// Хранилище сессий
 type SessionRepository struct {
 	mu       sync.RWMutex
 	sessions map[string]*domain.Session
 }
 
-// New creates a new in-memory session repository
+// Создаёт новый экземпляр
 func New() *SessionRepository {
 	return &SessionRepository{
 		sessions: make(map[string]*domain.Session),
 	}
 }
 
-// CreateSession creates a new session in memory
+// Метод SessionRepository.CreateSession
 func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.Session) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -38,7 +38,6 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.S
 		return nil
 	}
 
-	// Create a copy to avoid external mutations
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)
@@ -49,7 +48,7 @@ func (r *SessionRepository) CreateSession(ctx context.Context, session *domain.S
 	return nil
 }
 
-// GetSession retrieves a session by ID
+// Метод SessionRepository.GetSession
 func (r *SessionRepository) GetSession(ctx context.Context, sessionID string) (*domain.Session, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -59,7 +58,6 @@ func (r *SessionRepository) GetSession(ctx context.Context, sessionID string) (*
 		return nil, fmt.Errorf("session with ID %s not found", sessionID)
 	}
 
-	// Return a copy to avoid external mutations
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)
@@ -69,7 +67,7 @@ func (r *SessionRepository) GetSession(ctx context.Context, sessionID string) (*
 	return &sessionCopy, nil
 }
 
-// SaveSession updates an existing session
+// Метод SessionRepository.SaveSession
 func (r *SessionRepository) SaveSession(ctx context.Context, session *domain.Session) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -78,7 +76,6 @@ func (r *SessionRepository) SaveSession(ctx context.Context, session *domain.Ses
 		return fmt.Errorf("session with ID %s not found", session.ID)
 	}
 
-	// Create a copy to avoid external mutations
 	sessionCopy := *session
 	sessionCopy.Messages = make([]domain.Message, len(session.Messages))
 	copy(sessionCopy.Messages, session.Messages)

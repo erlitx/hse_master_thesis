@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// PrettyJSON returns an indented JSON string for logs/debugging.
+// Форматирует значение в JSON для логов
 func PrettyJSON(v interface{}) string {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {

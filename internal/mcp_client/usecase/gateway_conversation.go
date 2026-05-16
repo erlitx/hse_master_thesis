@@ -15,25 +15,14 @@ import (
 
 const maxGatewayToolIterations = 10
 
-// HandleGatewayConversation manually orchestrates Claude <-> MCP tool calls.
-//
-// Flow:
-//  1. Load/create session and append user message.
-//  2. Fetch MCP tool schema and send Claude request with `tools`.
-//  3. If Claude returns tool_use blocks, execute each tool via MCP tools/call.
-//  4. Append tool_result as a user message and continue the loop.
-//  5. Stop when no tool_use is returned (final assistant response) or max iterations reached.
-//
-// This keeps full history in one session so subsequent requests can continue context.
+// Оркестрирует диалог Claude и MCP-инструментов
 func (uc *UseCase) HandleGatewayConversation(ctx context.Context, input dto.GatewayConversationInput) (*domain.Session, error) {
-	// Step 1: Resolve session (continue existing or create a new one).
 	session, err := uc.getOrCreateSession(ctx, input.SessionID, input.Model)
 	if err != nil {
 		return nil, err
 	}
 	log.Debug().Str("session_id", session.ID).Msgf("gateway session start snapshot:\n%s", utils.PrettyJSON(session))
 
-	// Step 2: Append incoming user text.
 	userMessage := newUserMessageWithContent(session.ID, []domain.Content{{Type: "text", Text: input.Message}})
 	uc.appendSessionMessage(session, userMessage)
 
@@ -42,8 +31,7 @@ func (uc *UseCase) HandleGatewayConversation(ctx context.Context, input dto.Gate
 		Int("messages_count", len(session.Messages)).
 		Msgf("session after user message append:\n%s", utils.PrettyJSON(session))
 
-	// Step 3: Load MCP tool definitions into the session domain model (DTO → domain).
-	toolsDTO, err := uc.mcpClient.ListTools(ctx)
+	toolsDTO, err := uc.MCPServer.ListTools(ctx)
 	if err != nil {
 		_ = uc.sessionRepo.SaveSession(ctx, session)
 		return nil, fmt.Errorf("failed to list MCP tools: %w", err)
@@ -53,7 +41,6 @@ func (uc *UseCase) HandleGatewayConversation(ctx context.Context, input dto.Gate
 	session.GatewayMaxTokens = input.MaxTokens
 	session.GatewaySystem = input.System
 
-	// Step 4: Run Claude/tool loop until Claude no longer requests tool_use blocks.
 	for i := 0; i < maxGatewayToolIterations; i++ {
 		log.Debug().
 			Str("session_id", session.ID).
@@ -113,7 +100,6 @@ func (uc *UseCase) HandleGatewayConversation(ctx context.Context, input dto.Gate
 		}
 	}
 
-	// Step 5: Save finalized session snapshot.
 	if err := uc.sessionRepo.SaveSession(ctx, session); err != nil {
 		return nil, fmt.Errorf("failed to save session: %w", err)
 	}
@@ -127,7 +113,7 @@ func (uc *UseCase) HandleGatewayConversation(ctx context.Context, input dto.Gate
 	return session, nil
 }
 
-// newUserMessageWithContent builds a user-role message (e.g. plain text or tool_result blocks).
+// Создаёт пользовательское сообщение с контентом
 func newUserMessageWithContent(sessionID string, content []domain.Content) domain.Message {
 	return domain.Message{
 		ID:           uuid.New().String(),
@@ -140,7 +126,7 @@ func newUserMessageWithContent(sessionID string, content []domain.Content) domai
 	}
 }
 
-// appendSessionMessage appends a transcript message and refreshes the session's UpdatedAt.
+// Добавляет сообщение в сессию
 func (uc *UseCase) appendSessionMessage(session *domain.Session, msg domain.Message) {
 	if msg.SessionID == "" {
 		msg.SessionID = session.ID
@@ -149,9 +135,7 @@ func (uc *UseCase) appendSessionMessage(session *domain.Session, msg domain.Mess
 	session.UpdatedAt = time.Now()
 }
 
-// handleToolUses inspects only the last session message (the current assistant turn) for tool_use blocks,
-// executes each via MCP, appends a single user message with tool_result blocks, and returns the updated session.
-// Earlier messages are not scanned because their tool_use blocks were already handled on prior iterations.
+// Выполняет tool_use и добавляет tool_result
 func (uc *UseCase) handleToolUses(ctx context.Context, session *domain.Session) (*domain.Session, bool) {
 	if session == nil || len(session.Messages) == 0 {
 		return session, false
@@ -172,7 +156,7 @@ func (uc *UseCase) handleToolUses(ctx context.Context, session *domain.Session) 
 			input = map[string]interface{}{}
 		}
 
-		callResp, callErr := uc.mcpClient.CallTool(ctx, block.Name, input)
+		callResp, callErr := uc.MCPServer.CallTool(ctx, block.Name, input)
 		log.Debug().
 			Str("tool_name", block.Name).
 			Str("tool_use_id", block.ID).
@@ -198,6 +182,7 @@ func (uc *UseCase) handleToolUses(ctx context.Context, session *domain.Session) 
 				Msgf("raw tool response payload:\n%s", utils.PrettyJSON(callResp))
 		}
 
+		// Construct the tool_result block
 		toolResults = append(toolResults, domain.Content{
 			Type:      "tool_result",
 			ToolUseID: block.ID,
@@ -224,6 +209,7 @@ func (uc *UseCase) handleToolUses(ctx context.Context, session *domain.Session) 
 	return session, true
 }
 
+// Возвращает указатель на bool
 func boolPtr(v bool) *bool {
 	return &v
 }

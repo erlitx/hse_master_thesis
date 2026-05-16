@@ -2,8 +2,7 @@ package dto
 
 import "github.com/erlitx/mcp_server/internal/mcp_client/domain"
 
-// GatewayConversationRequest is the request payload for manual gateway orchestration.
-// It mirrors ConversationRequest but is dedicated to the /gateway flow.
+// HTTP-запрос gateway-диалога
 type GatewayConversationRequest struct {
 	Message   string  `json:"message" validate:"required"`
 	SessionID *string `json:"session_id,omitempty"`
@@ -12,7 +11,7 @@ type GatewayConversationRequest struct {
 	System    string  `json:"system,omitempty"`
 }
 
-// GatewayConversationInput is the resolved gateway use case input (defaults applied outside the use case).
+// Вход gateway-диалога
 type GatewayConversationInput struct {
 	Message   string
 	SessionID *string
@@ -21,15 +20,14 @@ type GatewayConversationInput struct {
 	System    string
 }
 
-// ClaudeToolDefinition describes a Claude-native tool in manual mode.
+// Описание инструмента для Claude
 type ClaudeToolDefinition struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
 	InputSchema map[string]interface{} `json:"input_schema"`
 }
 
-// ManualGatewayRequest is the Claude request shape used by manual /gateway flow.
-// It intentionally uses Claude-native tool definitions (not mcp_servers).
+// Запрос Claude с инструментами
 type ManualGatewayRequest struct {
 	Model     string                 `json:"model"`
 	MaxTokens int                    `json:"max_tokens"`
@@ -38,8 +36,7 @@ type ManualGatewayRequest struct {
 	Tools     []ClaudeToolDefinition `json:"tools,omitempty"`
 }
 
-// ManualGatewayRequestFromSession builds a Claude manual-gateway request from the current session snapshot.
-// The session must carry gateway options (GatewayModel, GatewayMaxTokens, GatewaySystem), messages, and tools.
+// Собирает gateway-запрос из сессии
 func ManualGatewayRequestFromSession(s *domain.Session) ManualGatewayRequest {
 	if s == nil {
 		return ManualGatewayRequest{}
@@ -53,8 +50,7 @@ func ManualGatewayRequestFromSession(s *domain.Session) ManualGatewayRequest {
 	}
 }
 
-// ToolUseContent represents assistant tool invocation block returned by Claude.
-// For manual tool orchestration the type is expected to be "tool_use".
+// Блок tool_use
 type ToolUseContent struct {
 	Type  string                 `json:"type"` // "tool_use"
 	ID    string                 `json:"id"`
@@ -62,8 +58,7 @@ type ToolUseContent struct {
 	Input map[string]interface{} `json:"input"`
 }
 
-// ToolResultContent is sent back to Claude as a result for a specific tool_use id.
-// For manual tool orchestration the type is expected to be "tool_result".
+// Блок tool_result
 type ToolResultContent struct {
 	Type      string          `json:"type"` // "tool_result"
 	ToolUseID string          `json:"tool_use_id"`
@@ -71,21 +66,21 @@ type ToolResultContent struct {
 	Content   []ClaudeContent `json:"content"`
 }
 
-// MCPToolCallRequest is the JSON-RPC params payload for tools/call.
+// Запрос вызова MCP-инструмента
 type MCPToolCallRequest struct {
 	Name      string                 `json:"name"`
 	Arguments map[string]interface{} `json:"arguments,omitempty"`
 }
 
-// MCPToolInfo is a normalized tool descriptor returned from MCP tools/list.
+// Метаданные MCP-инструмента
 type MCPToolInfo struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
-	// MCP tools/list returns this field as "inputSchema" (camelCase).
+	Annotations map[string]interface{} `json:"annotations,omitempty"`
 	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
 }
 
-// DomainToolsFromMCPTools maps MCP list output into session domain tools.
+// Конвертирует MCP-инструменты в domain
 func DomainToolsFromMCPTools(tools []MCPToolInfo) []domain.ToolDefinition {
 	if len(tools) == 0 {
 		return nil
@@ -101,7 +96,7 @@ func DomainToolsFromMCPTools(tools []MCPToolInfo) []domain.ToolDefinition {
 	return out
 }
 
-// ClaudeToolDefinitionsFromDomain maps stored session tools into Claude manual-gateway request shape.
+// Конвертирует инструменты в формат Claude
 func ClaudeToolDefinitionsFromDomain(tools []domain.ToolDefinition) []ClaudeToolDefinition {
 	if len(tools) == 0 {
 		return nil
