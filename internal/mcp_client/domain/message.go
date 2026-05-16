@@ -2,20 +2,29 @@ package domain
 
 import "time"
 
-
-// Session represents a conversation session with Claude
+// Сессия диалога
 type Session struct {
 	ID          string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Messages    []Message
-	StopReason  string // "end_turn", "max_tokens", "stop_sequence", etc.
-	Model       string
-	TotalTokens int
+	Tools       []ToolDefinition
+	GatewayModel     string
+	GatewayMaxTokens int
+	GatewaySystem    string
+	StopReason       string // "end_turn", "max_tokens", "stop_sequence", etc.
+	Model            string
+	TotalTokens      int
 }
 
+// Описание MCP-инструмента
+type ToolDefinition struct {
+	Name        string
+	Description string
+	InputSchema map[string]interface{}
+}
 
-// Message represents a single message in a conversation with Claude
+// Сообщение в сессии
 type Message struct {
 	ID           string
 	SessionID    string
@@ -26,8 +35,9 @@ type Message struct {
 	OutputTokens int
 }
 
+// Блок контента сообщения
 type Content struct {
-	Type      string
+	Type      string	// "text", "tool_use", "tool_result"
 	Text      string
 	ID        string
 	ToolUseID string

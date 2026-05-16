@@ -9,6 +9,7 @@ services:
     environment:
       APP_ENV: dev
       DOCKER: "true"
+      DBT_MANIFEST_PATH: /app/manifest.json
     expose:
       - "8081"
     restart: unless-stopped

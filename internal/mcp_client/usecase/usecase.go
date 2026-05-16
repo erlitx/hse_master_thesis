@@ -7,47 +7,47 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_client/dto"
 )
 
-// MCPClient provides access to the MCP server to fetch resources
-type MCPClient interface {
-	// ListResources returns all available resources from the MCP server
+// Метаданные MCP-сервера
+type MCPServer interface {
+	// Список ресурсов MCP
 	ListResources(ctx context.Context) ([]dto.MCPResource, error)
-	// ReadResource fetches the content of a specific resource
+	// Чтение ресурса по URI
 	ReadResource(ctx context.Context, uri string) (*dto.MCPResource, error)
-	// ListTools returns all available tools from the MCP server
+	// Список инструментов MCP
 	ListTools(ctx context.Context) ([]dto.MCPToolInfo, error)
-	// CallTool executes a specific MCP tool with arguments
+	// Вызов MCP-инструмента
 	CallTool(ctx context.Context, name string, arguments map[string]interface{}) (map[string]interface{}, error)
 }
 
-// ClaudeClient provides access to Claude API
+// Интерфейс ClaudeClient
 type ClaudeClient interface {
-	// SendMessage sends a message to Claude with context from MCP resources
+	// Отправка сообщения в Claude
 	SendMessage(ctx context.Context, req dto.ClaudeRequest) (*dto.ClaudeResponse, error)
-	// SendGatewayMessage sends a request to Claude with Claude-native tools format
+	// Отправка gateway-запроса в Claude
 	SendGatewayMessage(ctx context.Context, req dto.ManualGatewayRequest) (*dto.ClaudeResponse, error)
 }
 
-// SessionRepository defines the interface for session persistence
+// Хранилище сессий
 type SessionRepository interface {
-	// CreateSession creates a new session in the repository
+	// Создаёт сессию
 	CreateSession(ctx context.Context, session *domain.Session) error
-
-	// GetSession retrieves a session by ID
+	// Загружает сессию по ID
 	GetSession(ctx context.Context, sessionID string) (*domain.Session, error)
-
-	// SaveSession updates an existing session
+	// Сохраняет сессию
 	SaveSession(ctx context.Context, session *domain.Session) error
 }
 
+// Слой бизнес-логики
 type UseCase struct {
-	mcpClient    MCPClient
+	MCPServer    MCPServer
 	claudeClient ClaudeClient
 	sessionRepo  SessionRepository
 }
 
-func New(mcp MCPClient, claude ClaudeClient, sessionRepo SessionRepository) *UseCase {
+// Создаёт новый экземпляр
+func New(mcp MCPServer, claude ClaudeClient, sessionRepo SessionRepository) *UseCase {
 	return &UseCase{
-		mcpClient:    mcp,
+		MCPServer:    mcp,
 		claudeClient: claude,
 		sessionRepo:  sessionRepo,
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Регистрирует HTTP-маршруты
 func ProfileRouter(cfg config.Config, r *chi.Mux, uc *usecase.UseCase) error {
 	v1Handler := v1.New(uc, cfg)
 

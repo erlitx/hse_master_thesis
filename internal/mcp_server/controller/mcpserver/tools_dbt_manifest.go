@@ -10,18 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// registerManifestTools initializes MCP TOOLS related to DBT manifest.
-//
-// IMPORTANT:
-// - This runs once at startup
-// - It uses cached manifest snapshot (NOT dynamic)
-// - Registers:
-//  1. list_dbt_models     -> returns all model names
-//  2. get_dbt_model       -> returns full JSON for one model by name
-//
-// WHY TOOLS INSTEAD OF RESOURCES:
-// - Claude Message API supports tools more directly
-// - tools/call can return structured JSON/text payloads
+// Регистрирует инструменты manifest DWH
 func (h *Handler) registerManifestTools() {
 	ctx := context.Background()
 
@@ -39,6 +28,7 @@ func (h *Handler) registerManifestTools() {
 	log.Info().Int("count", len(manifest.Models)).Msg("registered DBT manifest tools")
 }
 
+// Строит индекс моделей по имени
 func buildModelIndex(manifest *domain.DBTManifest) map[string]domain.DBTModel {
 	modelByName := make(map[string]domain.DBTModel, len(manifest.Models))
 	for _, model := range manifest.Models {
@@ -47,16 +37,7 @@ func buildModelIndex(manifest *domain.DBTManifest) map[string]domain.DBTModel {
 	return modelByName
 }
 
-// registerListModelsTool registers a tool:
-//
-//	list_dbt_models()
-//
-// Returns:
-//
-//	{
-//	  "models": ["model1", "model2"],
-//	  "count": N
-//	}
+// Регистрирует инструмент списка моделей
 func (h *Handler) registerListModelsTool(manifest *domain.DBTManifest) {
 	tool := mcp.NewTool(
 		"list_dwh_models",
@@ -70,9 +51,7 @@ func (h *Handler) registerListModelsTool(manifest *domain.DBTManifest) {
 		Msg("registered DBT list tool")
 }
 
-// makeListModelsToolHandler handles:
-//
-//	tools/call -> list_dbt_models
+// Обработчик list_dwh_models
 func (h *Handler) makeListModelsToolHandler(manifest *domain.DBTManifest) func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		models := make([]domain.ModelListItem, 0, len(manifest.Models))
@@ -97,11 +76,7 @@ func (h *Handler) makeListModelsToolHandler(manifest *domain.DBTManifest) func(c
 	}
 }
 
-// registerGetModelTool registers a tool:
-//
-//	get_dbt_model(model_name: string)
-//
-// Returns FULL model JSON for one DBT model.
+// Регистрирует инструмент получения модели
 func (h *Handler) registerGetModelTool() {
 	tool := mcp.NewTool(
 		"get_dwh_model",
@@ -120,9 +95,7 @@ func (h *Handler) registerGetModelTool() {
 		Msg("registered DBT get-model tool")
 }
 
-// makeGetModelToolHandler handles:
-//
-//	tools/call -> get_dbt_model { "model_name": "..." }
+// Обработчик get_dwh_model
 func (h *Handler) handleGetModelTool(
 	ctx context.Context,
 	req mcp.CallToolRequest,

@@ -9,9 +9,9 @@ import (
 
 	"github.com/erlitx/mcp_server/config"
 	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/clickhouse"
-	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/clock"
 	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/dbt"
 	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/nop"
+	"github.com/erlitx/mcp_server/internal/mcp_server/adapter/superset"
 	httpcontroller "github.com/erlitx/mcp_server/internal/mcp_server/controller/http"
 	"github.com/erlitx/mcp_server/internal/mcp_server/usecase"
 	clickhousepkg "github.com/erlitx/mcp_server/pkg/clickhouse"
@@ -20,17 +20,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Dependencies struct {
-	Clock clock.Clock
-}
-
+// Запускает приложение
 func Run(ctx context.Context, cfg config.Config) error {
-	// --- Build dependencies (adapters) ---
-	deps := Dependencies{
-		Clock: clock.NewSystemClock(),
-	}
-
-	// CLICKHOUSE
 	chPool, err := clickhousepkg.New(ctx, cfg.ClickHouse)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to init ClickHouse")
@@ -39,12 +30,11 @@ func Run(ctx context.Context, cfg config.Config) error {
 
 	clickhouseUc := clickhouse.New(chPool.Conn())
 
-	// DBT
-	dbtAdapter := dbt.New("./manifest.json")
+	dbtAdapter := dbt.New(cfg.DBT.ManifestPath)
 	dbtCache := dbt.NewManifestCache(dbtAdapter)
+	bitoolAdapter := superset.New(cfg.Superset)
 
-	// Warmup cache on startup
-	log.Info().Msg("Warming up DBT manifest cache...")
+	log.Info().Str("path", cfg.DBT.ManifestPath).Msg("Warming up DBT manifest cache...")
 	if err := dbtCache.Warmup(ctx); err != nil {
 		log.Fatal().Err(err).Msg("failed to warmup DBT manifest cache")
 	}
@@ -56,9 +46,9 @@ func Run(ctx context.Context, cfg config.Config) error {
 		nop.Repository{},
 		nop.Postgres{},
 		clickhouseUc,
-		deps.Clock,
 		dbtAdapter,
 		dbtCache,
+		bitoolAdapter,
 	)
 
 	router := chi.NewRouter()

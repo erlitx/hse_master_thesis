@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Корневая конфигурация приложения
 type Config struct {
 	AppName       string `envconfig:"APP_NAME" required:"true"`
 	AppVersion    string `envconfig:"APP_VERSION" required:"true"`
@@ -18,6 +19,7 @@ type Config struct {
 	Env           string `envconfig:"APP_ENV" default:"prod"`
 }
 
+// Инициализирует логгер
 func Init(c Config) {
 	// --- parse level ---
 	level, err := zerolog.ParseLevel(strings.ToLower(c.Level))
@@ -48,7 +50,6 @@ func Init(c Config) {
 		Caller().
 		Logger()
 
-	// set global
 	log.Logger = logger
 	zerolog.SetGlobalLevel(level)
 

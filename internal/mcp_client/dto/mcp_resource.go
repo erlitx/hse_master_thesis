@@ -1,6 +1,6 @@
 package dto
 
-// MCPResource represents a resource fetched from the MCP server
+// MCP-ресурс
 type MCPResource struct {
 	URI         string `json:"uri"`
 	Name        string `json:"name"`

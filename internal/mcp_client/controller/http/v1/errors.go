@@ -7,9 +7,8 @@ import (
 	"github.com/erlitx/mcp_server/pkg/render"
 )
 
-// mcpClientErrorMappings maps domain errors to HTTP status codes and messages
+// Сопоставление доменных ошибок с HTTP-кодами
 var mcpClientErrorMappings = map[error]render.ErrorMapping{
-	// Session errors
 	domain.ErrSessionNotFound: {
 		Status:  http.StatusNotFound,
 		Message: "session not found",
@@ -23,7 +22,6 @@ var mcpClientErrorMappings = map[error]render.ErrorMapping{
 		Message: "invalid session id format",
 	},
 
-	// Message errors
 	domain.ErrEmptyMessage: {
 		Status:  http.StatusBadRequest,
 		Message: "message cannot be empty",
@@ -33,7 +31,6 @@ var mcpClientErrorMappings = map[error]render.ErrorMapping{
 		Message: "invalid message role - must be 'user' or 'assistant'",
 	},
 
-	// Claude API errors
 	domain.ErrClaudeAPI: {
 		Status:  http.StatusBadGateway,
 		Message: "claude api request failed",
@@ -47,7 +44,6 @@ var mcpClientErrorMappings = map[error]render.ErrorMapping{
 		Message: "invalid claude model specified",
 	},
 
-	// Repository errors
 	domain.ErrRepositoryFailed: {
 		Status:  http.StatusInternalServerError,
 		Message: "session storage operation failed",

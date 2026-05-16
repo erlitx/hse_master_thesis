@@ -9,17 +9,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Корневая конфигурация приложения
 type Config struct {
 	ServerPort string `envconfig:"HTTP_SERVER_PORT" default:"8081"`
 	ClientPort string `envconfig:"HTTP_CLIENT_PORT" default:"8082"`
 }
 
+// HTTP-сервер
 type Server struct {
 	server *http.Server
 	notify chan error
 }
 
-//nolint:exhaustruct
+// Создаёт новый экземпляр
 func New(handler http.Handler, port string) *Server {
 	httpServer := &http.Server{
 		Handler:      handler,
@@ -41,15 +43,18 @@ func New(handler http.Handler, port string) *Server {
 	return s
 }
 
+// Запускает HTTP-сервер в горутине
 func (s *Server) start() {
 	s.notify <- s.server.ListenAndServe()
 	close(s.notify)
 }
 
+// Канал ошибок завершения сервера
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
+// Закрывает соединение
 func (s *Server) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer cancel()

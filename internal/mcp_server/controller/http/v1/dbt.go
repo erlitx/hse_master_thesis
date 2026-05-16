@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// GetManifest handles GET /api/v1/dbt/manifest
+// Возвращает manifest DBT по HTTP
 func (h *Handlers) GetManifest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

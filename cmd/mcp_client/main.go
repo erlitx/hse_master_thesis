@@ -10,12 +10,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Точка входа приложения
 func main() {
 	logger.Init(logger.Config{
 		AppName:       "MCP_CLIENT",
 		AppVersion:    "v0.1.0",
 		PrettyConsole: true,
-		Level:         "debug", // force
+		Level:         "info", // force
 		Env:           os.Getenv("APP_ENV"),
 	})
 

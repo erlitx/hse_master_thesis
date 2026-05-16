@@ -1,7 +1,8 @@
 package dto
 
-// GatewayConversationRequest is the request payload for manual gateway orchestration.
-// It mirrors ConversationRequest but is dedicated to the /gateway flow.
+import "github.com/erlitx/mcp_server/internal/mcp_client/domain"
+
+// HTTP-запрос gateway-диалога
 type GatewayConversationRequest struct {
 	Message   string  `json:"message" validate:"required"`
 	SessionID *string `json:"session_id,omitempty"`
@@ -10,15 +11,23 @@ type GatewayConversationRequest struct {
 	System    string  `json:"system,omitempty"`
 }
 
-// ClaudeToolDefinition describes a Claude-native tool in manual mode.
+// Вход gateway-диалога
+type GatewayConversationInput struct {
+	Message   string
+	SessionID *string
+	Model     string
+	MaxTokens int
+	System    string
+}
+
+// Описание инструмента для Claude
 type ClaudeToolDefinition struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
 	InputSchema map[string]interface{} `json:"input_schema"`
 }
 
-// ManualGatewayRequest is the Claude request shape used by manual /gateway flow.
-// It intentionally uses Claude-native tool definitions (not mcp_servers).
+// Запрос Claude с инструментами
 type ManualGatewayRequest struct {
 	Model     string                 `json:"model"`
 	MaxTokens int                    `json:"max_tokens"`
@@ -27,8 +36,21 @@ type ManualGatewayRequest struct {
 	Tools     []ClaudeToolDefinition `json:"tools,omitempty"`
 }
 
-// ToolUseContent represents assistant tool invocation block returned by Claude.
-// For manual tool orchestration the type is expected to be "tool_use".
+// Собирает gateway-запрос из сессии
+func ManualGatewayRequestFromSession(s *domain.Session) ManualGatewayRequest {
+	if s == nil {
+		return ManualGatewayRequest{}
+	}
+	return ManualGatewayRequest{
+		Model:     s.GatewayModel,
+		MaxTokens: s.GatewayMaxTokens,
+		System:    s.GatewaySystem,
+		Messages:  FromDomainMessages(s.Messages),
+		Tools:     ClaudeToolDefinitionsFromDomain(s.Tools),
+	}
+}
+
+// Блок tool_use
 type ToolUseContent struct {
 	Type  string                 `json:"type"` // "tool_use"
 	ID    string                 `json:"id"`
@@ -36,8 +58,7 @@ type ToolUseContent struct {
 	Input map[string]interface{} `json:"input"`
 }
 
-// ToolResultContent is sent back to Claude as a result for a specific tool_use id.
-// For manual tool orchestration the type is expected to be "tool_result".
+// Блок tool_result
 type ToolResultContent struct {
 	Type      string          `json:"type"` // "tool_result"
 	ToolUseID string          `json:"tool_use_id"`
@@ -45,16 +66,48 @@ type ToolResultContent struct {
 	Content   []ClaudeContent `json:"content"`
 }
 
-// MCPToolCallRequest is the JSON-RPC params payload for tools/call.
+// Запрос вызова MCP-инструмента
 type MCPToolCallRequest struct {
 	Name      string                 `json:"name"`
 	Arguments map[string]interface{} `json:"arguments,omitempty"`
 }
 
-// MCPToolInfo is a normalized tool descriptor returned from MCP tools/list.
+// Метаданные MCP-инструмента
 type MCPToolInfo struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
-	// MCP tools/list returns this field as "inputSchema" (camelCase).
+	Annotations map[string]interface{} `json:"annotations,omitempty"`
 	InputSchema map[string]interface{} `json:"inputSchema,omitempty"`
+}
+
+// Конвертирует MCP-инструменты в domain
+func DomainToolsFromMCPTools(tools []MCPToolInfo) []domain.ToolDefinition {
+	if len(tools) == 0 {
+		return nil
+	}
+	out := make([]domain.ToolDefinition, 0, len(tools))
+	for _, t := range tools {
+		out = append(out, domain.ToolDefinition{
+			Name:        t.Name,
+			Description: t.Description,
+			InputSchema: t.InputSchema,
+		})
+	}
+	return out
+}
+
+// Конвертирует инструменты в формат Claude
+func ClaudeToolDefinitionsFromDomain(tools []domain.ToolDefinition) []ClaudeToolDefinition {
+	if len(tools) == 0 {
+		return nil
+	}
+	out := make([]ClaudeToolDefinition, 0, len(tools))
+	for _, t := range tools {
+		out = append(out, ClaudeToolDefinition{
+			Name:        t.Name,
+			Description: t.Description,
+			InputSchema: t.InputSchema,
+		})
+	}
+	return out
 }

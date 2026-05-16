@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Health handles GET /health
+// Проверка живости сервиса
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -5,28 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/rs/zerolog/log"
-	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
-
-// registerManifestResources initializes ALL MCP resources related to DBT manifest.
-//
-// IMPORTANT:
-// - This runs once at startup
-// - It uses cached manifest snapshot (NOT dynamic)
-// - Registers:
-//   1. Bulk resource: dwh://models
-//   2. Per-model resources: dwh://models/{model_name}
-//
-// MCP DESIGN NOTE:
-// - resources/list → returns metadata (name, description, uri)
-// - resources/read → returns actual content (via handler below)
+// Регистрирует ресурсы manifest DWH
 func (h *Handler) registerManifestResources() {
 	ctx := context.Background()
 
-	// Load manifest snapshot from usecase layer
 	manifest, err := h.uc.GetManifestCache(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get manifest cache during resource registration")
@@ -34,7 +21,6 @@ func (h *Handler) registerManifestResources() {
 	}
 
 	// Root/bulk resource (optional convenience endpoint)
-	// Allows clients to fetch structured list of models via resources/read
 	res := mcp.NewResource(
 		"dwh://models",
 		"All DBT Models",
@@ -42,28 +28,14 @@ func (h *Handler) registerManifestResources() {
 		mcp.WithMIMEType("application/json"),
 	)
 
-	// Attach handler (executed on resources/read)
 	h.srv.AddResource(res, h.makeBulkModelsHandler(manifest))
 
-	// Register individual model resources (core functionality)
 	h.registerModelResources(manifest)
 
 	log.Info().Int("count", len(manifest.Models)).Msg("registered DBT model resources")
 }
 
-
-// registerModelResources creates ONE MCP resource per DBT model.
-//
-// Each model becomes accessible via:
-//   dwh://models/{model_name}
-//
-// Example:
-//   dwh://models/locations
-//   dwh://models/net_work_minutes
-//
-// NOTE:
-// - modelData is copied to avoid closure bug in Go loops
-// - each handler is bound to its own model snapshot
+// Регистрирует ресурс на каждую модель
 func (h *Handler) registerModelResources(manifest *domain.DBTManifest) {
 	for _, model := range manifest.Models {
 		modelData := model // IMPORTANT: capture loop variable
@@ -88,23 +60,9 @@ func (h *Handler) registerModelResources(manifest *domain.DBTManifest) {
 	}
 }
 
-
-// makeBulkModelsHandler returns handler for:
-//
-//   resources/read → dwh://models
-//
-// Returns:
-// {
-//   "models": ["model1", "model2"],
-//   "count": N
-// }
-//
-// NOTE:
-// - This is actual DATA (not metadata like resources/list)
-// - Useful for clients / LLMs to consume structured list
+// Обработчик чтения dwh://models
 func (h *Handler) makeBulkModelsHandler(manifest *domain.DBTManifest) func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	return func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-
 		// Extract only model names (lightweight response)
 		modelNames := extractModelNames(manifest.Models)
 
@@ -118,20 +76,9 @@ func (h *Handler) makeBulkModelsHandler(manifest *domain.DBTManifest) func(ctx c
 	}
 }
 
-
-// makeModelHandler returns handler for:
-//
-//   resources/read → dwh://models/{model}
-//
-// Returns FULL model JSON (columns, refs, meta, etc)
-//
-// NOTE:
-// - This is the main "data endpoint" for each DBT model
-// - Uses TextResourceContents → JSON is embedded as string (MCP spec)
-// - Client must parse JSON from "text" field
+// Обработчик чтения dwh://models/{name}
 func (h *Handler) makeModelHandler(uri string, model domain.DBTModel) func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	return func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-
 		log.Debug().
 			Str("model", model.Name).
 			Int("columns", len(model.Columns)).
@@ -142,16 +89,7 @@ func (h *Handler) makeModelHandler(uri string, model domain.DBTModel) func(ctx c
 	}
 }
 
-
-// buildJSONResource converts ANY payload into MCP TextResourceContents.
-//
-// IMPORTANT MCP BEHAVIOR:
-// - "text" field is ALWAYS string → JSON gets escaped (\n, \")
-// - This is expected and correct (JSON inside JSON)
-//
-// Client must:
-//   1. read "text"
-//   2. parse JSON again
+// Сериализует payload в TextResourceContents
 func buildJSONResource(uri string, payload interface{}) ([]mcp.ResourceContents, error) {
 	jsonData, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
@@ -167,15 +105,7 @@ func buildJSONResource(uri string, payload interface{}) ([]mcp.ResourceContents,
 	return []mcp.ResourceContents{&content}, nil
 }
 
-
-// extractModelNames is a small helper to avoid repeating loops.
-//
-// Converts:
-//   []DBTModel → []string
-//
-// NOTE:
-// - used only for bulk resource
-// - keeps payload small and clean
+// Извлекает имена моделей из среза
 func extractModelNames(models []domain.DBTModel) []string {
 	names := make([]string, len(models))
 	for i, m := range models {
@@ -183,8 +113,6 @@ func extractModelNames(models []domain.DBTModel) []string {
 	}
 	return names
 }
-
-
 
 // package mcpserver
 

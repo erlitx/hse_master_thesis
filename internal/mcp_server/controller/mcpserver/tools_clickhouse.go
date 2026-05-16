@@ -6,8 +6,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+// Регистрирует инструменты ClickHouse
 func (h *Handler) registerClickHouseTools() {
-	// ch_ping() -> text
 	pingTool := mcp.NewTool(
 		"ch_ping",
 		mcp.WithDescription("Ping ClickHouse using the configured adapter."),
@@ -17,7 +17,6 @@ func (h *Handler) registerClickHouseTools() {
 		return h.clickHousePing(ctx, req)
 	})
 
-	// ch_query(query:string) -> json rows (limited)
 	queryTool := mcp.NewTool(
 		"ch_query",
 		mcp.WithDescription("Execute a read-only ClickHouse query (SELECT/SHOW/DESCRIBE/EXPLAIN)."),

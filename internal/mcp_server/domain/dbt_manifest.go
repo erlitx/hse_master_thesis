@@ -1,11 +1,11 @@
 package domain
 
-// DBTManifest represents the parsed DBT manifest data
+// Manifest DBT
 type DBTManifest struct {
 	Models []DBTModel `json:"models"`
 }
 
-// DBTModel represents a single DBT model with its metadata
+// Модель DBT
 type DBTModel struct {
 	Name         string           `json:"name"`
 	RelationName string           `json:"relation_name"`
@@ -15,14 +15,14 @@ type DBTModel struct {
 	Refs         []DBTModelRef    `json:"refs"`
 }
 
-// DBTModelColumn represents a column in a DBT model
+// Колонка модели DBT
 type DBTModelColumn struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	DataType    string `json:"data_type"`
 }
 
-// DBTModelRef represents a reference to another DBT model
+// Ссылка модели DBT
 type DBTModelRef struct {
 	Name    string  `json:"name"`
 	Package *string `json:"package,omitempty"`

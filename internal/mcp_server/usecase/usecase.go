@@ -7,68 +7,74 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
-// Storage is a placeholder interface to mirror your architecture.
-// Implementations live in adapters.
+// Заглушка хранилища (адаптер)
 type Storage interface{}
 
-// Repository is a placeholder interface to mirror your architecture.
-// Implementations live in adapters.
+// Заглушка репозитория (адаптер)
 type Repository interface{}
 
-// Postgres is a placeholder interface to mirror your architecture.
-// Implementations live in adapters.
+// Заглушка Postgres (адаптер)
 type Postgres interface{}
 
-// Clock abstracts time for testability.
+// Абстракция времени для тестов
 type Clock interface {
 	Now() time.Time
 }
 
-// ClickHouse provides read-only access to ClickHouse.
+// Адаптер ClickHouse
 type ClickHouse interface {
+	// Проверяет доступность ClickHouse
 	PingTest(ctx context.Context) error
-	// QueryReadOnly executes a read-only query (SELECT/SHOW/DESCRIBE/EXPLAIN) and returns rows.
-	QueryReadOnly(ctx context.Context, query string) ([]map[string]any, error)
-
-	// // LoadFromS3ToCH is included to match your desired shape; template keeps it unimplemented.
-	// LoadFromS3ToCH(ctx context.Context, load any) error
+	// Выполняет read-only запрос
+	QueryReadOnly(ctx context.Context, query string) (*domain.QueryResult, error)
 }
 
-// DBTAdapter provides access to DBT manifest parsing.
+// Интерфейс DBTAdapter
 type DBTAdapter interface {
+	// Парсит manifest DBT
 	ParseManifest(ctx context.Context) (*domain.DBTManifest, error)
 }
 
-// ManifestCache provides cached access to DBT manifest data.
+// Кэш manifest DBT
 type ManifestCache interface {
-	// Get returns the cached manifest. If cache is empty, it will load it first.
+	// Возвращает manifest из кэша
 	Get(ctx context.Context) (*domain.DBTManifest, error)
-
-	// Warmup loads the manifest into cache.
+	// Прогревает кэш
 	Warmup(ctx context.Context) error
-
-	// Refresh reloads the manifest from source and updates the cache.
+	// Обновляет кэш из источника
 	Refresh(ctx context.Context) error
 }
 
+// Клиент Superset (BI)
+type BiTool interface {
+	// Создаёт датасет
+	CreateDataset(ctx context.Context, input domain.CreateDatasetInput) (*domain.Dataset, error)
+	// Создаёт дашборд
+	CreateDashboard(ctx context.Context) error
+	// Создаёт чарт
+	CreateChart(ctx context.Context) error
+}
+
+// Слой бизнес-логики
 type UseCase struct {
 	storageminio  Storage
 	repository    Repository
 	postgres      Postgres
 	clickhouse    ClickHouse
-	clock         Clock
 	dbtAdapter    DBTAdapter
 	manifestCache ManifestCache
+	bitool        BiTool
 }
 
-func New(s Storage, r Repository, p Postgres, ch ClickHouse, clk Clock, dbt DBTAdapter, cache ManifestCache) *UseCase {
+// Создаёт новый экземпляр
+func New(s Storage, r Repository, p Postgres, ch ClickHouse, dbt DBTAdapter, cache ManifestCache, bitool BiTool) *UseCase {
 	return &UseCase{
 		storageminio:  s,
 		repository:    r,
 		postgres:      p,
 		clickhouse:    ch,
-		clock:         clk,
 		dbtAdapter:    dbt,
 		manifestCache: cache,
+		bitool:        bitool,
 	}
 }

@@ -1,11 +1,11 @@
 package dto
 
-// manifestJSON represents the structure of the manifest.json file
+// JSON manifest DBT
 type ManifestJSON struct {
 	Nodes map[string]NodeJSON `json:"nodes"`
 }
 
-// nodeJSON represents a node in the manifest
+// Узел manifest
 type NodeJSON struct {
 	Name         string                `json:"name"`
 	RelationName string                `json:"relation_name"`
@@ -16,14 +16,14 @@ type NodeJSON struct {
 	Refs         []RefJSON             `json:"refs"`
 }
 
-// columnJSON represents a column definition
+// Колонка в JSON manifest
 type ColumnJSON struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	DataType    string `json:"data_type"`
 }
 
-// refJSON represents a model reference
+// Ссылка в JSON manifest
 type RefJSON struct {
 	Name    string  `json:"name"`
 	Package *string `json:"package"`

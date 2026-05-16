@@ -7,7 +7,7 @@ import (
 	"github.com/erlitx/mcp_server/internal/mcp_server/domain"
 )
 
-// ManifestCache returns the manifest cache instance.
+// Возвращает manifest из кэша
 func (uc *UseCase) GetManifestCache(ctx context.Context) (*domain.DBTManifest, error) {
 	manifest, err := uc.manifestCache.Get(ctx)
 	if err != nil {
